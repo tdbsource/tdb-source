@@ -67,8 +67,3 @@ Sadece analiz metnini yaz, başlık veya madde işareti kullanma.`;
 
   return res.status(405).json({ error: 'Method not allowed' });
 }
-```
-
-Commit ettikten sonra şu URL'yi tekrar aç ve ne yazdığını söyle:
-```
-https://tdb-source.vercel.app/api/analyze
