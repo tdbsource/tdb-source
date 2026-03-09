@@ -545,9 +545,9 @@ function updateRiskDots() {
 function getRiskFromEqs(eqs) {
   if (!eqs.length) return { risk:'low', label:'Düşük Aktivite' };
   const maxMag = Math.max(...eqs.map(e => e.mag));
-  if (maxMag >= 4 || eqs.length >= 10) return { risk:'high', label:'Yüksek Risk Bölgesi' };
-  if (maxMag >= 3 || eqs.length >= 5)  return { risk:'mid',  label:'Orta Risk Bölgesi' };
-  return { risk:'low', label:'Düşük Risk Bölgesi' };
+  if (maxMag >= 4 || eqs.length >= 10) return { risk:'high', label:'Riskli Olabilecek Konum' };
+  if (maxMag >= 3 || eqs.length >= 5)  return { risk:'mid',  label:'Orta Risk' };
+  return { risk:'low', label:'Şimdilik Düşük Risk' };
 }
 
 function getDailyBars(eqs) {
