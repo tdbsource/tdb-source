@@ -293,7 +293,33 @@ const REGIONS = [
   ]},
 ];
 
-// ── İL → BÖLGE ENLEMİ (Kandilli filtresi için yaklaşık bbox) ──────────────
+// ── İL ID → AFAD PROVINCE ALANI EŞLEŞTİRME ────────────────────────────
+const PROV_MAP = {
+  istanbul:'istanbul',izmir:'izmir',ankara:'ankara',bursa:'bursa',
+  kocaeli:'kocaeli',sakarya:'sakarya',duzce:'düzce',tekirdag:'tekirdağ',
+  edirne:'edirne',kirklareli:'kırklareli',canakkale:'çanakkale',
+  balikesir:'balıkesir',bilecik:'bilecik',yalova:'yalova',
+  mugla:'muğla',aydin:'aydın',manisa:'manisa',denizli:'denizli',
+  kutahya:'kütahya',usak:'uşak',afyon:'afyonkarahisar',
+  samsun:'samsun',bolu:'bolu',zonguldak:'zonguldak',bartin:'bartın',
+  karabuk:'karabük',kastamonu:'kastamonu',sinop:'sinop',ordu:'ordu',
+  giresun:'giresun',trabzon:'trabzon',rize:'rize',artvin:'artvin',
+  konya:'konya',kayseri:'kayseri',eskisehir:'eskişehir',sivas:'sivas',
+  yozgat:'yozgat',aksaray:'aksaray',nevsehir:'nevşehir',
+  kirsehir:'kırşehir',kirikkale:'kırıkkale',cankiri:'çankırı',karaman:'karaman',
+  hatay:'hatay',adana:'adana',mersin:'mersin',antalya:'antalya',
+  isparta:'isparta',burdur:'burdur',osmaniye:'osmaniye',nigde:'niğde',
+  kahramanmaras:'kahramanmaraş',elazig:'elazığ',malatya:'malatya',
+  erzincan:'erzincan',tunceli:'tunceli',gaziantep:'gaziantep',
+  adiyaman:'adıyaman',diyarbakir:'diyarbakır',bingol:'bingöl',
+  erzurum:'erzurum',van:'van',mus:'muş',agri:'ağrı',kars:'kars',
+  ardahan:'ardahan',igdir:'ığdır',bitlis:'bitlis',hakkari:'hakkari',
+  sanliurfa:'şanlıurfa',mardin:'mardin',batman:'batman',siirt:'siirt',
+  sirnak:'şırnak',kilis:'kilis',corum:'çorum',amasya:'amasya',
+  tokat:'tokat',gumushane:'gümüşhane',bayburt:'bayburt',
+};
+
+// ── İL → KOORDINAT (province eşleşmezse fallback) ──────────────────────
 const CITY_COORDS = {
   istanbul:{lat:41.01,lon:28.96},izmir:{lat:38.42,lon:27.14},
   ankara:{lat:39.93,lon:32.85},bursa:{lat:40.18,lon:29.06},
@@ -305,7 +331,10 @@ const CITY_COORDS = {
   bingol:{lat:38.88,lon:40.5},erzurum:{lat:39.9,lon:41.27},
   van:{lat:38.5,lon:43.38},samsun:{lat:41.29,lon:36.33},
   mugla:{lat:37.21,lon:28.36},adiyaman:{lat:37.76,lon:38.27},
-  diyarbakir:{lat:37.91,lon:40.22},
+  diyarbakir:{lat:37.91,lon:40.22},balikesir:{lat:39.65,lon:27.88},
+  manisa:{lat:38.61,lon:27.43},denizli:{lat:37.78,lon:29.1},
+  kutahya:{lat:39.42,lon:29.98},bolu:{lat:40.74,lon:31.61},
+  canakkale:{lat:40.15,lon:26.41},
 };
 
 // ── KANDILLI RSS → JSON proxy ─────────────────────────────────────────────
@@ -337,7 +366,8 @@ async function fetchKandilli() {
       lon: parseFloat(e.longitude),
       depth: parseFloat(e.depth),
       mag: parseFloat(e.magnitude),
-      place: e.location || e.district || '',
+      place: e.location || (e.district ? e.district + (e.province ? ' (' + e.province + ')' : '') : '') || '',
+      province: (e.province || '').toLowerCase().trim(),
       ts: new Date(e.date).getTime()
     })).filter(e => !isNaN(e.ts));
     last24h = allEqs.filter(e => e.ts > dayAgo);
@@ -345,6 +375,7 @@ async function fetchKandilli() {
     updateHeader();
     updateTicker();
     buildDropdowns();
+    updateRiskDots();
   } catch(e) {
     console.warn('AFAD bağlantı hatası, demo veri kullanılıyor:', e);
     loadDemoData();
@@ -395,13 +426,34 @@ function buildDropdowns() {
 
 // ── BİR İL İÇİN SON 7 GÜN DEPREMLERİ FİLTRELE ───────────────────────────
 function getEqsForCity(cityId) {
-  const coords = CITY_COORDS[cityId];
-  if (!coords || allEqs.length === 0) return [];
-  const delta = 1.5; // yaklaşık 150km yarıçap
-  return allEqs.filter(e =>
-    Math.abs(e.lat - coords.lat) < delta &&
-    Math.abs(e.lon - coords.lon) < delta
-  ).sort((a,b) => b.ts - a.ts);
+  if (!allEqs.length) return [];
+  const provName = PROV_MAP[cityId] || cityId;
+  const coordFallback = CITY_COORDS[cityId];
+  const delta = 1.2;
+  return allEqs.filter(e => {
+    // Önce province adına göre eşleştir (en güvenilir yöntem)
+    if (e.province && e.province.includes(provName)) return true;
+    // Fallback: koordinat bazlı
+    if (coordFallback) {
+      return Math.abs(e.lat - coordFallback.lat) < delta &&
+             Math.abs(e.lon - coordFallback.lon) < delta;
+    }
+    return false;
+  }).sort((a,b) => b.ts - a.ts);
+}
+
+// ── VERİ YÜKLENDIKTEN SONRA RISK NOKTALARINI GUNCELLE ──────────────────
+function updateRiskDots() {
+  document.querySelectorAll('.prov-pill').forEach(pill => {
+    const cityId = pill.dataset.id;
+    const eqs = getEqsForCity(cityId);
+    const dot = pill.querySelector('.rdot');
+    if (!dot) return;
+    dot.className = 'rdot';
+    if (eqs.length === 0) return;
+    const { risk } = getRiskFromEqs(eqs);
+    dot.classList.add(risk === 'high' ? 'high' : risk === 'mid' ? 'mid' : 'low');
+  });
 }
 
 function getRiskFromEqs(eqs) {
@@ -578,6 +630,7 @@ function loadDemoData() {
   updateHeader();
   updateTicker();
   buildDropdowns();
+  updateRiskDots();
 }
 
 // ── BAŞLAT ────────────────────────────────────────────────────────────────
