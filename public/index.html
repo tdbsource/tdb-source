@@ -1,3 +1,6 @@
+Index · HTML
+Copy
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -310,8 +313,7 @@ const CITY_COORDS = {
 
 // ── KANDILLI RSS → JSON proxy ─────────────────────────────────────────────
 // CORS-free proxy üzerinden Kandilli verisi çekiyoruz
-const KANDILLI_URL = 'https://api.allorigins.win/get?url=' +
-  encodeURIComponent('http://www.koeri.boun.edu.tr/scripts/lst0.asp');
+const KANDILLI_URL = '/api/analyze';
 
 // ── VERİ PARSE ────────────────────────────────────────────────────────────
 function parseKandilli(text) {
@@ -354,7 +356,7 @@ async function fetchKandilli() {
   try {
     const res = await fetch(KANDILLI_URL);
     const json = await res.json();
-    const parsed = parseKandilli(json.contents);
+    const parsed = parseKandilli(json.contents || '');
 
     const now = Date.now();
     const weekAgo = now - 7*24*60*60*1000;
