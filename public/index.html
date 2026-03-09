@@ -320,25 +320,107 @@ const PROV_MAP = {
 };
 
 // ── İL → KOORDINAT (province eşleşmezse fallback) ──────────────────────
+// Her ilin merkez koordinatı + yarıçap (derece) — EMSC province vermez, koordinat ile eşleştirilir
 const CITY_COORDS = {
-  istanbul:{lat:41.01,lon:28.96},izmir:{lat:38.42,lon:27.14},
-  ankara:{lat:39.93,lon:32.85},bursa:{lat:40.18,lon:29.06},
-  kocaeli:{lat:40.77,lon:29.92},sakarya:{lat:40.69,lon:30.43},
-  duzce:{lat:40.84,lon:31.16},kahramanmaras:{lat:37.58,lon:36.94},
-  elazig:{lat:38.67,lon:39.22},hatay:{lat:36.4,lon:36.35},
-  gaziantep:{lat:37.06,lon:37.38},malatya:{lat:38.35,lon:38.31},
-  erzincan:{lat:39.75,lon:39.49},tunceli:{lat:39.11,lon:39.55},
-  bingol:{lat:38.88,lon:40.5},erzurum:{lat:39.9,lon:41.27},
-  van:{lat:38.5,lon:43.38},samsun:{lat:41.29,lon:36.33},
-  mugla:{lat:37.21,lon:28.36},adiyaman:{lat:37.76,lon:38.27},
-  diyarbakir:{lat:37.91,lon:40.22},balikesir:{lat:39.65,lon:27.88},
-  manisa:{lat:38.61,lon:27.43},denizli:{lat:37.78,lon:29.1},
-  kutahya:{lat:39.42,lon:29.98},bolu:{lat:40.74,lon:31.61},
-  canakkale:{lat:40.15,lon:26.41},
+  istanbul: {lat:41.01,lon:28.96,r:0.8},
+  izmir:    {lat:38.42,lon:27.14,r:1.2},
+  ankara:   {lat:39.93,lon:32.85,r:1.5},
+  bursa:    {lat:40.18,lon:29.06,r:1.0},
+  kocaeli:  {lat:40.77,lon:29.92,r:0.7},
+  sakarya:  {lat:40.69,lon:30.43,r:0.8},
+  duzce:    {lat:40.84,lon:31.16,r:0.7},
+  tekirdag: {lat:41.08,lon:27.51,r:0.9},
+  edirne:   {lat:41.68,lon:26.56,r:1.0},
+  kirklareli:{lat:41.73,lon:27.22,r:0.9},
+  canakkale:{lat:40.15,lon:26.41,r:1.1},
+  balikesir:{lat:39.65,lon:27.88,r:1.3},
+  bilecik:  {lat:40.14,lon:29.98,r:0.7},
+  yalova:   {lat:40.65,lon:29.27,r:0.5},
+  mugla:    {lat:37.21,lon:28.36,r:1.3},
+  aydin:    {lat:37.85,lon:27.84,r:1.1},
+  manisa:   {lat:38.61,lon:27.43,r:1.2},
+  denizli:  {lat:37.78,lon:29.10,r:1.1},
+  kutahya:  {lat:39.42,lon:29.98,r:1.1},
+  usak:     {lat:38.68,lon:29.41,r:0.8},
+  afyon:    {lat:38.76,lon:30.54,r:1.2},
+  samsun:   {lat:41.29,lon:36.33,r:1.2},
+  bolu:     {lat:40.74,lon:31.61,r:0.9},
+  zonguldak:{lat:41.46,lon:31.80,r:0.8},
+  bartin:   {lat:41.64,lon:32.34,r:0.7},
+  karabuk:  {lat:41.20,lon:32.62,r:0.7},
+  kastamonu:{lat:41.38,lon:33.78,r:1.1},
+  sinop:    {lat:42.02,lon:35.15,r:0.8},
+  ordu:     {lat:40.98,lon:37.88,r:0.9},
+  giresun:  {lat:40.91,lon:38.39,r:0.8},
+  trabzon:  {lat:41.00,lon:39.72,r:0.9},
+  rize:     {lat:41.02,lon:40.52,r:0.7},
+  artvin:   {lat:41.18,lon:41.82,r:0.9},
+  konya:    {lat:37.87,lon:32.49,r:1.6},
+  kayseri:  {lat:38.73,lon:35.49,r:1.3},
+  eskisehir:{lat:39.78,lon:30.52,r:1.1},
+  sivas:    {lat:39.75,lon:37.02,r:1.5},
+  yozgat:   {lat:39.82,lon:34.81,r:1.2},
+  aksaray:  {lat:38.37,lon:34.03,r:1.0},
+  nevsehir: {lat:38.62,lon:34.71,r:0.9},
+  kirsehir: {lat:39.15,lon:34.17,r:0.9},
+  kirikkale:{lat:39.85,lon:33.51,r:0.7},
+  cankiri:  {lat:40.60,lon:33.62,r:1.0},
+  karaman:  {lat:37.18,lon:33.22,r:1.1},
+  hatay:    {lat:36.40,lon:36.35,r:1.1},
+  adana:    {lat:37.00,lon:35.32,r:1.2},
+  mersin:   {lat:36.81,lon:34.64,r:1.2},
+  antalya:  {lat:36.89,lon:30.71,r:1.5},
+  isparta:  {lat:37.76,lon:30.55,r:0.9},
+  burdur:   {lat:37.72,lon:30.29,r:0.9},
+  osmaniye: {lat:37.07,lon:36.25,r:0.8},
+  nigde:    {lat:37.97,lon:34.68,r:1.0},
+  kahramanmaras:{lat:37.58,lon:36.94,r:1.2},
+  elazig:   {lat:38.67,lon:39.22,r:1.0},
+  malatya:  {lat:38.35,lon:38.31,r:1.2},
+  erzincan: {lat:39.75,lon:39.49,r:1.1},
+  tunceli:  {lat:39.11,lon:39.55,r:1.0},
+  gaziantep:{lat:37.06,lon:37.38,r:1.0},
+  adiyaman: {lat:37.76,lon:38.27,r:1.0},
+  diyarbakir:{lat:37.91,lon:40.22,r:1.3},
+  bingol:   {lat:38.88,lon:40.50,r:1.0},
+  erzurum:  {lat:39.90,lon:41.27,r:1.5},
+  van:      {lat:38.50,lon:43.38,r:1.5},
+  mus:      {lat:38.75,lon:41.50,r:1.1},
+  agri:     {lat:39.72,lon:43.05,r:1.3},
+  kars:     {lat:40.60,lon:43.10,r:1.2},
+  ardahan:  {lat:41.11,lon:42.70,r:0.9},
+  igdir:    {lat:39.89,lon:44.05,r:0.9},
+  bitlis:   {lat:38.40,lon:42.11,r:1.0},
+  hakkari:  {lat:37.57,lon:43.74,r:1.1},
+  sanliurfa:{lat:37.16,lon:38.80,r:1.3},
+  mardin:   {lat:37.31,lon:40.74,r:1.1},
+  batman:   {lat:37.88,lon:41.13,r:0.8},
+  siirt:    {lat:37.93,lon:41.95,r:0.9},
+  sirnak:   {lat:37.52,lon:42.46,r:1.0},
+  kilis:    {lat:36.72,lon:37.12,r:0.6},
+  corum:    {lat:40.55,lon:34.96,r:1.1},
+  amasya:   {lat:40.65,lon:35.84,r:0.8},
+  tokat:    {lat:40.31,lon:36.55,r:1.0},
+  gumushane:{lat:40.46,lon:39.48,r:0.9},
+  bayburt:  {lat:40.26,lon:40.23,r:0.7},
 };
 
 // ── KANDILLI RSS → JSON proxy ─────────────────────────────────────────────
 // CORS-free proxy üzerinden Kandilli verisi çekiyoruz
+// Türkçe karakter normalize — AFAD büyük/küçük karışık gönderebiliyor
+function normProv(s) {
+  if (!s) return '';
+  return s.trim()
+    .toLowerCase()
+    .replace(/İ/g,'i')   // İ → i
+    .replace(/I/g,'ı')   // I → ı  (TR lower)
+    .replace(/Ü/g,'ü')   // Ü → ü
+    .replace(/Ö/g,'ö')   // Ö → ö
+    .replace(/Ç/g,'ç')   // Ç → ç
+    .replace(/Ş/g,'ş')   // Ş → ş
+    .replace(/Ğ/g,'ğ');  // Ğ → ğ
+}
+
 function timeAgo(ts) {
   const diff = Date.now() - ts;
   const min = Math.floor(diff/60000);
@@ -367,9 +449,8 @@ async function fetchKandilli() {
       depth: parseFloat(e.depth),
       mag: parseFloat(e.magnitude),
       place: e.location || (e.district ? e.district + (e.province ? ' (' + e.province + ')' : '') : '') || '',
-      province: (e.province || '').toLowerCase().trim(),
-      // AFAD tarihleri Türkiye saati (UTC+3) — +03:00 ekleyerek doğru parse et
-      ts: new Date((e.date || '').replace('T', 'T').endsWith('Z') ? e.date : e.date + '+03:00').getTime()
+      province: normProv(e.province),
+      ts: new Date(e.date || 0).getTime()   // EMSC UTC "Z", AFAD +03:00 — new Date her ikisini de doğru parse eder
     })).filter(e => !isNaN(e.ts));
     last24h = allEqs.filter(e => e.ts > dayAgo);
     topWeek = [...allEqs].sort((a,b) => b.mag - a.mag).slice(0, 8);
@@ -428,11 +509,23 @@ function buildDropdowns() {
 // ── BİR İL İÇİN SON 7 GÜN DEPREMLERİ FİLTRELE ───────────────────────────
 function getEqsForCity(cityId) {
   if (!allEqs.length) return [];
-  const provName = PROV_MAP[cityId] || cityId;
-  // Sadece province alanına göre eşleştir — kesin eşleşme
-  return allEqs.filter(e =>
-    e.province && e.province === provName
-  ).sort((a,b) => b.ts - a.ts);
+  const coord = CITY_COORDS[cityId];
+  const provName = normProv(PROV_MAP[cityId] || cityId);
+
+  return allEqs.filter(e => {
+    // 1) Province alanı varsa (AFAD) — tam eşleşme
+    if (e.province) {
+      const p = normProv(e.province);
+      return p === provName || p.includes(provName) || provName.includes(p);
+    }
+    // 2) Province yok (EMSC) — koordinat çemberi içinde mi?
+    if (coord) {
+      const dlat = e.lat - coord.lat;
+      const dlon = e.lon - coord.lon;
+      return Math.sqrt(dlat*dlat + dlon*dlon) <= (coord.r || 1.0);
+    }
+    return false;
+  }).sort((a,b) => b.ts - a.ts);
 }
 
 // ── VERİ YÜKLENDIKTEN SONRA RISK NOKTALARINI GUNCELLE ──────────────────
