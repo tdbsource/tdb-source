@@ -13,23 +13,44 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // ── GET: Sadece AFAD proxy — Gemini çağrısı YOK ─────────────────────────
+  // ── GET: EMSC proxy — Türkiye, son 3 gün, tüm büyüklükler ──────────────
   if (req.method === 'GET') {
     try {
+      // EMSC FDSN WS-Event: Türkiye bbox, son 3 gün, büyüklük filtresi yok
       const url =
-        'https://deprem.afad.gov.tr/apiv2/event/filter' +
-        '?start=' + getWeekAgo() +
-        '&end='   + getNow() +
-        '&minmag=0&orderby=timedesc&limit=500&format=json';
+        'https://www.seismicportal.eu/fdsnws/event/1/query' +
+        '?starttime=' + get3DaysAgo() +
+        '&endtime='   + getNow() +
+        '&minlatitude=35.8&maxlatitude=42.2' +
+        '&minlongitude=25.6&maxlongitude=44.8' +
+        '&orderby=time&limit=2000' +
+        '&format=json';
 
       const r = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(8000)
+        headers: { 'User-Agent': 'TDBSource/8 contact@tdbsource.com' },
+        signal: AbortSignal.timeout(12000)
       });
       const data = await r.json();
-      return res.status(200).json({ events: Array.isArray(data) ? data : [] });
+
+      // EMSC GeoJSON → normalize
+      const features = data?.features || [];
+      const events = features.map(f => {
+        const p = f.properties;
+        const [lon, lat, depth] = f.geometry?.coordinates || [0, 0, 0];
+        return {
+          latitude:  lat,
+          longitude: lon,
+          depth:     Math.abs(depth),
+          magnitude: p.mag ?? p.magnitude ?? 0,
+          location:  p.flynn_region || p.place || '',
+          province:  '',   // EMSC'de province yok, frontend koordinat ile eşleştirir
+          date:      p.time  // ISO UTC — "2026-03-09T10:00:00.000Z"
+        };
+      });
+
+      return res.status(200).json({ events, source: 'emsc' });
     } catch (err) {
-      return res.status(500).json({ error: 'AFAD bağlantı hatası', detail: err.message });
+      return res.status(500).json({ error: 'EMSC bağlantı hatası', detail: err.message });
     }
   }
 
@@ -100,11 +121,21 @@ export default async function handler(req, res) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
+function get3DaysAgo() {
+  const d = new Date();
+  d.setDate(d.getDate() - 3);
+  return d.toISOString();
+}
+function toTR(d) {
+  // AFAD Türkiye saati (UTC+3) bekliyor
+  const tr = new Date(d.getTime() + 3 * 60 * 60 * 1000);
+  return tr.toISOString().slice(0, 19);
+}
 function getNow() {
-  return new Date().toISOString().slice(0, 19);
+  return toTR(new Date());
 }
 function getWeekAgo() {
   const d = new Date();
   d.setDate(d.getDate() - 7);
-  return d.toISOString().slice(0, 19);
+  return toTR(d);
 }
