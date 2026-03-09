@@ -310,28 +310,6 @@ const CITY_COORDS = {
 
 // ── KANDILLI RSS → JSON proxy ─────────────────────────────────────────────
 // CORS-free proxy üzerinden Kandilli verisi çekiyoruz
-const KANDILLI_URL = '/api/analyze';
-
-// ── VERİ PARSE ────────────────────────────────────────────────────────────
-function parseKandilli(text) {
-  const lines = text.split('\n');
-  const earthquakes = [];
-  for (const line of lines) {
-    // Kandilli satır formatı: YYYY.MM.DD HH:MM:SS lat lon dep mag ... yer
-    const m = line.match(/(\d{4}\.\d{2}\.\d{2})\s+(\d{2}:\d{2}:\d{2})\s+([\d.-]+)\s+([\d.-]+)\s+([\d.]+)\s+-+\s+([\d.]+)\s+\w+\s+(.*)/);
-    if (m) {
-      earthquakes.push({
-        date: m[1], time: m[2],
-        lat: parseFloat(m[3]), lon: parseFloat(m[4]),
-        depth: parseFloat(m[5]), mag: parseFloat(m[6]),
-        place: m[7].trim(),
-        ts: new Date(m[1].replace(/\./g,'-') + 'T' + m[2]).getTime()
-      });
-    }
-  }
-  return earthquakes;
-}
-
 function timeAgo(ts) {
   const diff = Date.now() - ts;
   const min = Math.floor(diff/60000);
@@ -343,34 +321,36 @@ function timeAgo(ts) {
 
 function magClass(m) { return m >= 4 ? 'h' : m >= 3 ? 'm' : 'l'; }
 
-// ── GLOBAL DEĞİŞKENLER ───────────────────────────────────────────────────
-let allEqs = [];      // son 7 günlük tüm depremler
-let last24h = [];     // son 24 saatlik
-let topWeek = [];     // bu haftanın en büyükleri
+let allEqs = [];
+let last24h = [];
+let topWeek = [];
 
-// ── KANDİLLİ'DEN VERİ ÇEK ────────────────────────────────────────────────
 async function fetchKandilli() {
   try {
-    const res = await fetch(KANDILLI_URL);
+    const res = await fetch('/api/analyze');
     const json = await res.json();
-    const parsed = parseKandilli(json.contents || '');
-
+    const events = json.events || [];
     const now = Date.now();
-    const weekAgo = now - 7*24*60*60*1000;
-    const dayAgo  = now - 24*60*60*1000;
-
-    allEqs   = parsed.filter(e => e.ts > weekAgo);
-    last24h  = parsed.filter(e => e.ts > dayAgo);
-    topWeek  = [...allEqs].sort((a,b) => b.mag - a.mag).slice(0, 8);
-
+    const dayAgo = now - 24*60*60*1000;
+    allEqs = events.map(e => ({
+      lat: parseFloat(e.latitude),
+      lon: parseFloat(e.longitude),
+      depth: parseFloat(e.depth),
+      mag: parseFloat(e.magnitude),
+      place: e.location || e.district || '',
+      ts: new Date(e.date).getTime()
+    })).filter(e => !isNaN(e.ts));
+    last24h = allEqs.filter(e => e.ts > dayAgo);
+    topWeek = [...allEqs].sort((a,b) => b.mag - a.mag).slice(0, 8);
     updateHeader();
     updateTicker();
     buildDropdowns();
   } catch(e) {
-    console.warn('Kandilli bağlantı hatası, demo veri kullanılıyor:', e);
+    console.warn('AFAD bağlantı hatası, demo veri kullanılıyor:', e);
     loadDemoData();
   }
 }
+
 
 function updateHeader() {
   document.getElementById('cnt24').textContent = last24h.length + ' deprem';
