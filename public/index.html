@@ -368,7 +368,8 @@ async function fetchKandilli() {
       mag: parseFloat(e.magnitude),
       place: e.location || (e.district ? e.district + (e.province ? ' (' + e.province + ')' : '') : '') || '',
       province: (e.province || '').toLowerCase().trim(),
-      ts: new Date(e.date).getTime()
+      // AFAD tarihleri Türkiye saati (UTC+3) — +03:00 ekleyerek doğru parse et
+      ts: new Date((e.date || '').replace('T', 'T').endsWith('Z') ? e.date : e.date + '+03:00').getTime()
     })).filter(e => !isNaN(e.ts));
     last24h = allEqs.filter(e => e.ts > dayAgo);
     topWeek = [...allEqs].sort((a,b) => b.mag - a.mag).slice(0, 8);
@@ -428,18 +429,10 @@ function buildDropdowns() {
 function getEqsForCity(cityId) {
   if (!allEqs.length) return [];
   const provName = PROV_MAP[cityId] || cityId;
-  const coordFallback = CITY_COORDS[cityId];
-  const delta = 1.2;
-  return allEqs.filter(e => {
-    // Önce province adına göre eşleştir (en güvenilir yöntem)
-    if (e.province && e.province.includes(provName)) return true;
-    // Fallback: koordinat bazlı
-    if (coordFallback) {
-      return Math.abs(e.lat - coordFallback.lat) < delta &&
-             Math.abs(e.lon - coordFallback.lon) < delta;
-    }
-    return false;
-  }).sort((a,b) => b.ts - a.ts);
+  // Sadece province alanına göre eşleştir — kesin eşleşme
+  return allEqs.filter(e =>
+    e.province && e.province === provName
+  ).sort((a,b) => b.ts - a.ts);
 }
 
 // ── VERİ YÜKLENDIKTEN SONRA RISK NOKTALARINI GUNCELLE ──────────────────
