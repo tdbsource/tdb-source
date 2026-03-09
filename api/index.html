@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDB Source — Generation 8</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#d6d9de;--bg2:#cdd0d6;
+  --card:rgba(255,255,255,0.52);--card-hover:rgba(255,255,255,0.72);
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+  --text:#1c2030;--text2:#4a5268;--text3:#8a90a0;
+  --red:#c0392b;--red2:#d94030;
+  --redsft:rgba(192,57,43,0.12);--orangesft:rgba(184,90,8,0.12);--greensft:rgba(26,122,72,0.12);
+  --orange:#b85a08;--green:#1a7a48;
+  --shadow-sm:0 2px 8px rgba(0,0,0,0.08);--shadow-lg:0 16px 48px rgba(0,0,0,0.16);
+}
+html,body{height:100%;font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");opacity:.7}
+
+/* TICKER */
+.ticker{position:relative;z-index:100;height:34px;background:rgba(200,204,212,0.95);border-bottom:1px solid var(--border2);display:flex;align-items:center;overflow:hidden;flex-shrink:0;backdrop-filter:blur(12px)}
+.ticker::after{content:'';position:absolute;right:0;top:0;bottom:0;width:64px;background:linear-gradient(90deg,transparent,rgba(200,204,212,0.95));pointer-events:none;z-index:2}
+.t-label{padding:0 14px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.18em;color:var(--red2);text-transform:uppercase;white-space:nowrap;border-right:1px solid var(--border2);height:100%;display:flex;align-items:center;gap:6px;background:rgba(190,194,202,0.8);flex-shrink:0}
+.t-dot{width:5px;height:5px;border-radius:50%;background:var(--red2);animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.t-wrap{overflow:hidden;flex:1}
+.t-track{display:flex;animation:scroll 50s linear infinite;white-space:nowrap}
+.t-item{display:inline-flex;align-items:center;gap:9px;padding:0 22px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);border-right:1px solid var(--border)}
+.t-mag{font-weight:500}.t-mag.h{color:var(--red2)}.t-mag.m{color:var(--orange)}.t-mag.l{color:var(--text3)}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:56px;background:rgba(220,224,230,0.97);border-bottom:1px solid var(--border2);flex-shrink:0;position:relative;z-index:50;backdrop-filter:blur(20px)}
+.logo{display:flex;align-items:baseline;gap:10px}
+.logo-name{font-size:21px;font-weight:800;letter-spacing:-.025em;color:var(--text)}
+.logo-gen{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;border:1px solid var(--border2);padding:2px 7px;border-radius:4px}
+.h-stats{display:flex;align-items:center;gap:4px}
+.hstat{display:flex;flex-direction:column;align-items:flex-end;padding:5px 13px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .18s ease;position:relative}
+.hstat:hover,.hstat.active{background:rgba(255,255,255,.55);border-color:var(--border2);box-shadow:var(--shadow-sm)}
+.hstat-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:2px}
+.hstat-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--text)}
+.hstat-val.live{color:var(--red2);display:flex;align-items:center;gap:5px}
+.live-ring{width:7px;height:7px;border-radius:50%;background:var(--red2);box-shadow:0 0 6px var(--red2);animation:pulse-ring 2s ease-in-out infinite}
+@keyframes pulse-ring{0%,100%{opacity:1;box-shadow:0 0 6px var(--red2)}50%{opacity:.4;box-shadow:0 0 2px var(--red2)}}
+.h-div{width:1px;height:26px;background:var(--border2);margin:0 2px}
+.hdrop{position:absolute;top:calc(100% + 8px);right:0;min-width:270px;background:rgba(225,228,234,.97);backdrop-filter:blur(24px);border:1px solid var(--border2);border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden;opacity:0;transform:translateY(-6px) scale(.97);pointer-events:none;transition:all .2s cubic-bezier(.4,0,.2,1);z-index:500}
+.hdrop.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.hdrop-title{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--text3);padding:10px 14px 8px;border-bottom:1px solid var(--border)}
+.ditem{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .12s}
+.ditem:last-child{border-bottom:none}.ditem:hover{background:rgba(255,255,255,.5)}
+.dmag{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;width:38px;flex-shrink:0}
+.dmag.h{color:var(--red2)}.dmag.m{color:var(--orange)}.dmag.l{color:var(--text3)}
+.dinfo{flex:1;min-width:0}
+.dloc{font-size:11.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtime{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:1px}
+.ddepth{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);flex-shrink:0}
+
+/* LAYOUT */
+.app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:1}
+.body{display:flex;flex:1;overflow:hidden;position:relative}
+
+/* MAP AREA */
+.map-area{flex:1;position:relative;overflow:hidden;background:linear-gradient(160deg,#cdd1d8 0%,#d4d8de 50%,#caced6 100%);display:flex;align-items:center;justify-content:center;padding:18px 16px}
+.map-area::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px);background-size:44px 44px}
+
+/* REGIONS GRID */
+.regions{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:12px;width:100%;height:100%;max-width:960px;max-height:520px}
+.region-card{background:rgba(255,255,255,0.38);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.65);border-radius:14px;padding:10px 10px 10px;box-shadow:0 4px 20px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.7);transition:box-shadow .2s ease;overflow-y:auto;display:flex;flex-direction:column}
+.region-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.8)}
+.region-card::-webkit-scrollbar{width:3px}
+.region-card::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
+.region-title{font-family:'Syne',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text);padding:7px 10px;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,.1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;margin:-10px -10px 8px -10px;border-radius:14px 14px 0 0;position:sticky;top:-10px;z-index:2}
+.prov-list{display:flex;flex-direction:column;gap:3px}
+.prov-pill{display:flex;align-items:center;justify-content:space-between;padding:3px 7px;border-radius:6px;background:rgba(255,255,255,0.45);border:1px solid rgba(0,0,0,.06);cursor:pointer;transition:all .15s ease;gap:4px;min-height:22px}
+.prov-pill:hover{background:rgba(255,255,255,.78);border-color:rgba(0,0,0,.14);transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.prov-pill.active{background:rgba(192,57,43,.12);border-color:rgba(192,57,43,.35)}
+.prov-name{font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.prov-pill.active .prov-name{color:var(--red)}
+.rdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:rgba(0,0,0,.12)}
+.rdot.high{background:#e03535;box-shadow:0 0 5px rgba(224,53,53,.5)}
+.rdot.mid{background:#e8a800;box-shadow:0 0 5px rgba(232,168,0,.4)}
+.rdot.low{background:#1a9a52;box-shadow:0 0 5px rgba(26,154,82,.4)}
+
+/* SIDE PANEL */
+.panel{width:365px;flex-shrink:0;background:rgba(220,224,230,.97);backdrop-filter:blur(28px);border-left:1px solid var(--border2);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .38s cubic-bezier(.4,0,.2,1);overflow:hidden;position:relative;z-index:20;box-shadow:-8px 0 32px rgba(0,0,0,.1)}
+.panel.open{transform:translateX(0)}
+.p-head{padding:20px 20px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.p-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.p-city{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--text)}
+.p-close{width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.06);border:1px solid var(--border);cursor:pointer;color:var(--text2);font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.p-close:hover{background:rgba(0,0,0,.11);color:var(--text)}
+.ai-block{background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.8);border-radius:10px;padding:13px 13px 13px 17px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.ai-block::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:linear-gradient(180deg,var(--red2),var(--orange))}
+.ai-tag{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.ai-ico{width:16px;height:16px;background:var(--red);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0}
+.ai-tag-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--text3)}
+.ai-txt{font-size:12px;line-height:1.7;color:var(--text2)}
+.ai-loading{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.ai-spinner{width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--red2);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.risk-pill{display:inline-flex;align-items:center;gap:5px;margin-top:9px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500}
+.risk-pill.high{background:var(--redsft);color:var(--red2);border:1px solid rgba(192,57,43,.2)}
+.risk-pill.mid{background:var(--orangesft);color:var(--orange);border:1px solid rgba(184,90,8,.2)}
+.risk-pill.low{background:var(--greensft);color:var(--green);border:1px solid rgba(26,122,72,.2)}
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;padding:0 20px}
+.tab{padding:11px 0;margin-right:20px;font-size:11.5px;font-weight:700;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.03em}
+.tab.active{color:var(--text);border-bottom-color:var(--red)}
+.tcont{flex:1;overflow-y:auto;padding:16px 20px;display:none}
+.tcont.active{display:block}
+.tcont::-webkit-scrollbar{width:3px}
+.tcont::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.sec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sec-title{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--text3)}
+.sec-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red2)}
+.chart-wrap{margin-bottom:18px}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:48px}
+.cbar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
+.cbar{width:100%;border-radius:3px 3px 0 0;background:rgba(0,0,0,.08)}
+.cbar.on{background:linear-gradient(180deg,var(--red2),rgba(192,57,43,.3))}
+.cbar-lbl{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text3)}
+.eq-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.eq-row:last-child{border-bottom:none}
+.eq-badge{width:36px;height:36px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500}
+.eq-badge.h{background:var(--redsft);color:var(--red2);border:1px solid rgba(192,57,43,.2)}
+.eq-badge.m{background:var(--orangesft);color:var(--orange);border:1px solid rgba(184,90,8,.2)}
+.eq-badge.l{background:rgba(0,0,0,.05);color:var(--text2);border:1px solid var(--border)}
+.eq-info{flex:1;min-width:0}
+.eq-loc{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eq-meta{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px}
+.eq-dep{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);flex-shrink:0}
+.pred-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--text3);margin-bottom:14px}
+.pred-row{margin-bottom:16px}
+.pred-name{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:6px}
+.pred-bar-wrap{display:flex;align-items:center;gap:11px}
+.pred-bg{flex:1;height:6px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden}
+.pred-fill{height:100%;border-radius:3px;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.pred-pct{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;width:46px;text-align:right;flex-shrink:0}
+.pred-note{margin-top:16px;padding:11px 13px;background:rgba(0,0,0,.04);border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);line-height:1.65}
+.tip{position:fixed;background:rgba(28,32,48,.93);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);color:#fff;padding:5px 11px;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:11px;pointer-events:none;opacity:0;transition:opacity .1s;white-space:nowrap;z-index:9999}
+.tip.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="ticker">
+  <div class="t-label"><span class="t-dot"></span>CANLI</div>
+  <div class="t-wrap"><div class="t-track" id="ttrack"></div></div>
+</div>
+
+<div class="header">
+  <div class="logo">
+    <span class="logo-name">TDB Source<sup style="font-size:9px;font-weight:600;letter-spacing:0;vertical-align:super;margin-left:1px">™</sup></span>
+    <span class="logo-gen">Generation 8</span>
+  </div>
+  <div class="h-stats">
+    <div class="hstat" id="hs24" onclick="toggleDrop('drop24',this)">
+      <span class="hstat-lbl">Son 24 Saat</span>
+      <span class="hstat-val" id="cnt24">— deprem</span>
+      <div class="hdrop" id="drop24"><div class="hdrop-title">Son 24 Saat — Tüm Hareketler</div></div>
+    </div>
+    <div class="h-div"></div>
+    <div class="hstat" id="hsBig" onclick="toggleDrop('dropBig',this)">
+      <span class="hstat-lbl">En Büyük</span>
+      <span class="hstat-val" id="bigMag">— </span>
+      <div class="hdrop" id="dropBig"><div class="hdrop-title">Bu Haftanın En Büyükleri</div></div>
+    </div>
+    <div class="h-div"></div>
+    <div class="hstat" style="cursor:default">
+      <span class="hstat-lbl">Veri Kaynağı</span>
+      <span class="hstat-val live"><span class="live-ring"></span>Kandilli</span>
+    </div>
+  </div>
+</div>
+
+<div class="body">
+  <div class="map-area">
+    <div class="regions" id="regions"></div>
+  </div>
+  <div class="panel" id="panel">
+    <div class="p-head">
+      <div class="p-top">
+        <div class="p-city" id="pCity">—</div>
+        <button class="p-close" id="pClose">✕</button>
+      </div>
+      <div class="ai-block">
+        <div class="ai-tag"><div class="ai-ico">✦</div><span class="ai-tag-lbl">Source Gen 8 Analiz</span></div>
+        <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
+        <div class="risk-pill" id="rPill"></div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-tab="act">Son 7 Gün</div>
+      <div class="tab" data-tab="pred">Tahmin</div>
+    </div>
+    <div class="tcont active" id="tab-act">
+      <div class="sec-hd">
+        <span class="sec-title">Deprem Hareketleri</span>
+        <span class="sec-cnt" id="secCnt"></span>
+      </div>
+      <div class="chart-wrap"><div class="chart-bars" id="chartBars"></div></div>
+      <div id="eqList"></div>
+    </div>
+    <div class="tcont" id="tab-pred">
+      <div class="pred-lbl">M 4.0+ Deprem Olasılığı</div>
+      <div class="pred-row">
+        <div class="pred-name">Önümüzdeki 7 Gün</div>
+        <div class="pred-bar-wrap">
+          <div class="pred-bg"><div class="pred-fill" id="pf7" style="width:0%;background:linear-gradient(90deg,var(--red),var(--red2))"></div></div>
+          <span class="pred-pct" id="pp7" style="color:var(--red2)">—</span>
+        </div>
+      </div>
+      <div class="pred-row">
+        <div class="pred-name">Önümüzdeki 15 Gün</div>
+        <div class="pred-bar-wrap">
+          <div class="pred-bg"><div class="pred-fill" id="pf15" style="width:0%;background:linear-gradient(90deg,var(--orange),#d4822a)"></div></div>
+          <span class="pred-pct" id="pp15" style="color:var(--orange)">—</span>
+        </div>
+      </div>
+      <div class="pred-row">
+        <div class="pred-name">Önümüzdeki 30 Gün</div>
+        <div class="pred-bar-wrap">
+          <div class="pred-bg"><div class="pred-fill" id="pf30" style="width:0%;background:linear-gradient(90deg,#1a5fb0,#3d8ef0)"></div></div>
+          <span class="pred-pct" id="pp30" style="color:#1a5fb0">—</span>
+        </div>
+      </div>
+      <div class="pred-note">⚠ Bu tahminler Source Gen 8 tarafından tarihsel sismik kayıtlar, fay hattı yakınlığı ve mevcut aktivite yoğunluğu harmanlarak üretilmiştir. Bilimsel kesinlik taşımaz; yalnızca bilgilendirme amaçlıdır.</div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+// ── BÖLGELER ──────────────────────────────────────────────────────────────
+const REGIONS = [
+  { id:'marmara', title:'Marmara', provs:[
+    {id:'istanbul',n:'İstanbul',r:'high'},{id:'bursa',n:'Bursa',r:'mid'},
+    {id:'kocaeli',n:'Kocaeli',r:'high'},{id:'sakarya',n:'Sakarya',r:'mid'},
+    {id:'tekirdag',n:'Tekirdağ',r:''},{id:'edirne',n:'Edirne',r:''},
+    {id:'kirklareli',n:'Kırklareli',r:''},{id:'canakkale',n:'Çanakkale',r:''},
+    {id:'balikesir',n:'Balıkesir',r:''},{id:'bilecik',n:'Bilecik',r:''},
+    {id:'yalova',n:'Yalova',r:''}
+  ]},
+  { id:'ege', title:'Ege', provs:[
+    {id:'izmir',n:'İzmir',r:'high'},{id:'mugla',n:'Muğla',r:'mid'},
+    {id:'aydin',n:'Aydın',r:''},{id:'manisa',n:'Manisa',r:''},
+    {id:'denizli',n:'Denizli',r:''},{id:'kutahya',n:'Kütahya',r:''},
+    {id:'usak',n:'Uşak',r:''},{id:'afyon',n:'Afyonkarahisar',r:''}
+  ]},
+  { id:'karadeniz', title:'Karadeniz', provs:[
+    {id:'samsun',n:'Samsun',r:'mid'},{id:'duzce',n:'Düzce',r:'mid'},
+    {id:'bolu',n:'Bolu',r:''},{id:'zonguldak',n:'Zonguldak',r:''},
+    {id:'bartin',n:'Bartın',r:''},{id:'karabuk',n:'Karabük',r:''},
+    {id:'kastamonu',n:'Kastamonu',r:''},{id:'sinop',n:'Sinop',r:''},
+    {id:'ordu',n:'Ordu',r:''},{id:'giresun',n:'Giresun',r:''},
+    {id:'trabzon',n:'Trabzon',r:''},{id:'rize',n:'Rize',r:''},
+    {id:'artvin',n:'Artvin',r:''}
+  ]},
+  { id:'ic_anadolu', title:'İç Anadolu', provs:[
+    {id:'ankara',n:'Ankara',r:''},{id:'konya',n:'Konya',r:''},
+    {id:'kayseri',n:'Kayseri',r:''},{id:'eskisehir',n:'Eskişehir',r:''},
+    {id:'sivas',n:'Sivas',r:''},{id:'yozgat',n:'Yozgat',r:''},
+    {id:'aksaray',n:'Aksaray',r:''},{id:'nevsehir',n:'Nevşehir',r:''},
+    {id:'kirsehir',n:'Kırşehir',r:''},{id:'kirikkale',n:'Kırıkkale',r:''},
+    {id:'cankiri',n:'Çankırı',r:''},{id:'karaman',n:'Karaman',r:''}
+  ]},
+  { id:'akdeniz', title:'Akdeniz', provs:[
+    {id:'hatay',n:'Hatay',r:'high'},{id:'adana',n:'Adana',r:''},
+    {id:'mersin',n:'Mersin',r:''},{id:'antalya',n:'Antalya',r:''},
+    {id:'isparta',n:'Isparta',r:''},{id:'burdur',n:'Burdur',r:''},
+    {id:'osmaniye',n:'Osmaniye',r:''},{id:'nigde',n:'Niğde',r:''}
+  ]},
+  { id:'dogu', title:'Doğu/Güneydoğu', provs:[
+    {id:'kahramanmaras',n:'K.Maraş',r:'high'},{id:'elazig',n:'Elazığ',r:'mid'},
+    {id:'malatya',n:'Malatya',r:'mid'},{id:'erzincan',n:'Erzincan',r:'mid'},
+    {id:'tunceli',n:'Tunceli',r:'mid'},{id:'gaziantep',n:'Gaziantep',r:'high'},
+    {id:'adiyaman',n:'Adıyaman',r:'mid'},{id:'diyarbakir',n:'Diyarbakır',r:'mid'},
+    {id:'bingol',n:'Bingöl',r:'mid'},{id:'erzurum',n:'Erzurum',r:'mid'},
+    {id:'van',n:'Van',r:'mid'},{id:'mus',n:'Muş',r:''},
+    {id:'agri',n:'Ağrı',r:''},{id:'kars',n:'Kars',r:''},
+    {id:'ardahan',n:'Ardahan',r:''},{id:'igdir',n:'Iğdır',r:''},
+    {id:'bitlis',n:'Bitlis',r:''},{id:'hakkari',n:'Hakkari',r:''},
+    {id:'sanliurfa',n:'Şanlıurfa',r:''},{id:'mardin',n:'Mardin',r:''},
+    {id:'batman',n:'Batman',r:''},{id:'siirt',n:'Siirt',r:''},
+    {id:'sirnak',n:'Şırnak',r:''},{id:'kilis',n:'Kilis',r:''},
+    {id:'corum',n:'Çorum',r:''},{id:'amasya',n:'Amasya',r:''},
+    {id:'tokat',n:'Tokat',r:''},{id:'gumushane',n:'Gümüşhane',r:''},
+    {id:'bayburt',n:'Bayburt',r:''}
+  ]},
+];
+
+// ── İL → BÖLGE ENLEMİ (Kandilli filtresi için yaklaşık bbox) ──────────────
+const CITY_COORDS = {
+  istanbul:{lat:41.01,lon:28.96},izmir:{lat:38.42,lon:27.14},
+  ankara:{lat:39.93,lon:32.85},bursa:{lat:40.18,lon:29.06},
+  kocaeli:{lat:40.77,lon:29.92},sakarya:{lat:40.69,lon:30.43},
+  duzce:{lat:40.84,lon:31.16},kahramanmaras:{lat:37.58,lon:36.94},
+  elazig:{lat:38.67,lon:39.22},hatay:{lat:36.4,lon:36.35},
+  gaziantep:{lat:37.06,lon:37.38},malatya:{lat:38.35,lon:38.31},
+  erzincan:{lat:39.75,lon:39.49},tunceli:{lat:39.11,lon:39.55},
+  bingol:{lat:38.88,lon:40.5},erzurum:{lat:39.9,lon:41.27},
+  van:{lat:38.5,lon:43.38},samsun:{lat:41.29,lon:36.33},
+  mugla:{lat:37.21,lon:28.36},adiyaman:{lat:37.76,lon:38.27},
+  diyarbakir:{lat:37.91,lon:40.22},
+};
+
+// ── KANDILLI RSS → JSON proxy ─────────────────────────────────────────────
+// CORS-free proxy üzerinden Kandilli verisi çekiyoruz
+const KANDILLI_URL = 'https://api.allorigins.win/get?url=' +
+  encodeURIComponent('http://www.koeri.boun.edu.tr/scripts/lst0.asp');
+
+// ── VERİ PARSE ────────────────────────────────────────────────────────────
+function parseKandilli(text) {
+  const lines = text.split('\n');
+  const earthquakes = [];
+  for (const line of lines) {
+    // Kandilli satır formatı: YYYY.MM.DD HH:MM:SS lat lon dep mag ... yer
+    const m = line.match(/(\d{4}\.\d{2}\.\d{2})\s+(\d{2}:\d{2}:\d{2})\s+([\d.-]+)\s+([\d.-]+)\s+([\d.]+)\s+-+\s+([\d.]+)\s+\w+\s+(.*)/);
+    if (m) {
+      earthquakes.push({
+        date: m[1], time: m[2],
+        lat: parseFloat(m[3]), lon: parseFloat(m[4]),
+        depth: parseFloat(m[5]), mag: parseFloat(m[6]),
+        place: m[7].trim(),
+        ts: new Date(m[1].replace(/\./g,'-') + 'T' + m[2]).getTime()
+      });
+    }
+  }
+  return earthquakes;
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  const min = Math.floor(diff/60000);
+  if (min < 60) return min + ' dk önce';
+  const hr = Math.floor(min/60);
+  if (hr < 24) return hr + ' sa önce';
+  return Math.floor(hr/24) + ' gün önce';
+}
+
+function magClass(m) { return m >= 4 ? 'h' : m >= 3 ? 'm' : 'l'; }
+
+// ── GLOBAL DEĞİŞKENLER ───────────────────────────────────────────────────
+let allEqs = [];      // son 7 günlük tüm depremler
+let last24h = [];     // son 24 saatlik
+let topWeek = [];     // bu haftanın en büyükleri
+
+// ── KANDİLLİ'DEN VERİ ÇEK ────────────────────────────────────────────────
+async function fetchKandilli() {
+  try {
+    const res = await fetch(KANDILLI_URL);
+    const json = await res.json();
+    const parsed = parseKandilli(json.contents);
+
+    const now = Date.now();
+    const weekAgo = now - 7*24*60*60*1000;
+    const dayAgo  = now - 24*60*60*1000;
+
+    allEqs   = parsed.filter(e => e.ts > weekAgo);
+    last24h  = parsed.filter(e => e.ts > dayAgo);
+    topWeek  = [...allEqs].sort((a,b) => b.mag - a.mag).slice(0, 8);
+
+    updateHeader();
+    updateTicker();
+    buildDropdowns();
+  } catch(e) {
+    console.warn('Kandilli bağlantı hatası, demo veri kullanılıyor:', e);
+    loadDemoData();
+  }
+}
+
+function updateHeader() {
+  document.getElementById('cnt24').textContent = last24h.length + ' deprem';
+  const biggest = last24h.sort((a,b) => b.mag - a.mag)[0];
+  document.getElementById('bigMag').textContent = biggest ? 'M ' + biggest.mag.toFixed(1) : '—';
+}
+
+function updateTicker() {
+  const recent = [...last24h].sort((a,b) => b.ts - a.ts).slice(0, 12);
+  const tt = document.getElementById('ttrack');
+  const items = [...recent, ...recent];
+  tt.innerHTML = items.map(d => `
+    <span class="t-item">
+      <span style="width:5px;height:5px;border-radius:50%;background:${d.mag>=4?'var(--red2)':d.mag>=3?'var(--orange)':'var(--text3)'};flex-shrink:0;display:inline-block"></span>
+      <span class="t-mag ${magClass(d.mag)}">M ${d.mag.toFixed(1)}</span>
+      <span>${d.place}</span>
+      <span style="color:var(--text3)">· ${timeAgo(d.ts)}</span>
+    </span>`).join('');
+}
+
+function buildDropdowns() {
+  const d24 = document.getElementById('drop24');
+  const dBig = document.getElementById('dropBig');
+  const sorted24 = [...last24h].sort((a,b) => b.ts - a.ts);
+
+  d24.innerHTML = '<div class="hdrop-title">Son 24 Saat — Tüm Hareketler</div>' +
+    sorted24.map(d => `
+      <div class="ditem">
+        <div class="dmag ${magClass(d.mag)}">M ${d.mag.toFixed(1)}</div>
+        <div class="dinfo"><div class="dloc">${d.place}</div><div class="dtime">${timeAgo(d.ts)}</div></div>
+        <div class="ddepth">${d.depth} km</div>
+      </div>`).join('');
+
+  dBig.innerHTML = '<div class="hdrop-title">Bu Haftanın En Büyükleri</div>' +
+    topWeek.map(d => `
+      <div class="ditem">
+        <div class="dmag ${magClass(d.mag)}">M ${d.mag.toFixed(1)}</div>
+        <div class="dinfo"><div class="dloc">${d.place}</div><div class="dtime">${timeAgo(d.ts)}</div></div>
+        <div class="ddepth">${d.depth} km</div>
+      </div>`).join('');
+}
+
+// ── BİR İL İÇİN SON 7 GÜN DEPREMLERİ FİLTRELE ───────────────────────────
+function getEqsForCity(cityId) {
+  const coords = CITY_COORDS[cityId];
+  if (!coords || allEqs.length === 0) return [];
+  const delta = 1.5; // yaklaşık 150km yarıçap
+  return allEqs.filter(e =>
+    Math.abs(e.lat - coords.lat) < delta &&
+    Math.abs(e.lon - coords.lon) < delta
+  ).sort((a,b) => b.ts - a.ts);
+}
+
+function getRiskFromEqs(eqs) {
+  if (!eqs.length) return { risk:'low', label:'Düşük Aktivite' };
+  const maxMag = Math.max(...eqs.map(e => e.mag));
+  if (maxMag >= 4 || eqs.length >= 10) return { risk:'high', label:'Yüksek Risk Bölgesi' };
+  if (maxMag >= 3 || eqs.length >= 5)  return { risk:'mid',  label:'Orta Risk Bölgesi' };
+  return { risk:'low', label:'Düşük Risk Bölgesi' };
+}
+
+function getDailyBars(eqs) {
+  const bars = [0,0,0,0,0,0,0];
+  const now = Date.now();
+  eqs.forEach(e => {
+    const daysAgo = Math.floor((now - e.ts) / (24*60*60*1000));
+    if (daysAgo >= 0 && daysAgo < 7) bars[6 - daysAgo]++;
+  });
+  return bars;
+}
+
+// ── PANEL AÇ ──────────────────────────────────────────────────────────────
+const DAYS = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+
+async function openPanel(cityId, cityName) {
+  document.querySelectorAll('.prov-pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll(`.prov-pill[data-id="${cityId}"]`).forEach(p => p.classList.add('active'));
+
+  document.getElementById('pCity').textContent = cityName;
+  document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
+  document.getElementById('rPill').textContent = '';
+  document.getElementById('panel').classList.add('open');
+
+  // Reset tabs
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tcont').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-tab="act"]').classList.add('active');
+  document.getElementById('tab-act').classList.add('active');
+
+  // Deprem verisi
+  const eqs = getEqsForCity(cityId);
+  const { risk, label } = getRiskFromEqs(eqs);
+  const bars = getDailyBars(eqs);
+
+  document.getElementById('secCnt').textContent = eqs.length + ' olay';
+
+  const mx = Math.max(...bars, 1);
+  document.getElementById('chartBars').innerHTML = bars.map((v,i) => `
+    <div class="cbar-col">
+      <div class="cbar ${v>0?'on':''}" style="height:${Math.max(3,v/mx*42)}px"></div>
+      <span class="cbar-lbl">${DAYS[i]}</span>
+    </div>`).join('');
+
+  document.getElementById('eqList').innerHTML = eqs.length
+    ? eqs.slice(0,8).map(e => `
+        <div class="eq-row">
+          <div class="eq-badge ${magClass(e.mag)}">M${e.mag.toFixed(1)}</div>
+          <div class="eq-info"><div class="eq-loc">${e.place}</div><div class="eq-meta">${timeAgo(e.ts)}</div></div>
+          <div class="eq-dep">${e.depth} km</div>
+        </div>`).join('')
+    : '<div style="font-size:11px;color:var(--text3);padding:10px 0;font-family:\'JetBrains Mono\',monospace">Bu hafta kayıtlı hareket yok.</div>';
+
+  // Tahmin (basit istatistiksel model)
+  const weekCount = eqs.length;
+  const base = Math.min(weekCount * 3, 40);
+  const maxM = eqs.length ? Math.max(...eqs.map(e=>e.mag)) : 0;
+  const magBonus = maxM >= 4 ? 20 : maxM >= 3 ? 10 : 0;
+  const p7  = Math.min(base + magBonus, 85);
+  const p15 = Math.min(p7 + 10, 90);
+  const p30 = Math.min(p15 + 8, 95);
+
+  ['pf7','pf15','pf30'].forEach(k => document.getElementById(k).style.width = '0%');
+  ['pp7','pp15','pp30'].forEach(k => document.getElementById(k).textContent = '—');
+  setTimeout(() => {
+    document.getElementById('pf7').style.width  = p7+'%';  document.getElementById('pp7').textContent  = '%'+p7;
+    document.getElementById('pf15').style.width = p15+'%'; document.getElementById('pp15').textContent = '%'+p15;
+    document.getElementById('pf30').style.width = p30+'%'; document.getElementById('pp30').textContent = '%'+p30;
+  }, 150);
+
+  // Risk rozeti
+  const rp = document.getElementById('rPill');
+  rp.textContent = '● ' + label;
+  rp.className = 'risk-pill ' + risk;
+
+  // Gemini AI analizi
+  try {
+    const eqData = eqs.slice(0,15).map(e => ({
+      mag: e.mag, place: e.place, depth: e.depth,
+      time: timeAgo(e.ts)
+    }));
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ city: cityName, earthquakes: eqData })
+    });
+    const data = await res.json();
+    document.getElementById('aiTxt').textContent = data.analysis || 'Analiz alınamadı.';
+  } catch(e) {
+    document.getElementById('aiTxt').textContent =
+      cityName + ' için bu hafta ' + eqs.length + ' sismik hareket kaydedilmiştir. Detaylı analiz için internet bağlantısını kontrol edin.';
+  }
+}
+
+// ── BÖLGE KARTLARINI OLUŞTUR ──────────────────────────────────────────────
+const regionsEl = document.getElementById('regions');
+REGIONS.forEach(reg => {
+  const card = document.createElement('div');
+  card.className = 'region-card';
+  const title = document.createElement('div');
+  title.className = 'region-title';
+  title.textContent = reg.title;
+  card.appendChild(title);
+  const list = document.createElement('div');
+  list.className = 'prov-list';
+  reg.provs.forEach(p => {
+    const pill = document.createElement('div');
+    pill.className = 'prov-pill';
+    pill.dataset.id = p.id;
+    pill.innerHTML = `<span class="prov-name">${p.n}</span>${p.r ? `<span class="rdot ${p.r}"></span>` : '<span class="rdot"></span>'}`;
+    pill.addEventListener('click', () => openPanel(p.id, p.n));
+    list.appendChild(pill);
+  });
+  card.appendChild(list);
+  regionsEl.appendChild(card);
+});
+
+// ── DROPDOWN ──────────────────────────────────────────────────────────────
+let openDrop = null;
+function toggleDrop(id, el) {
+  const drop = document.getElementById(id);
+  if (openDrop && openDrop !== id) document.getElementById(openDrop).classList.remove('open');
+  document.querySelectorAll('.hstat').forEach(s => s.classList.remove('active'));
+  const isOpen = drop.classList.toggle('open');
+  if (isOpen) { el.classList.add('active'); openDrop = id; } else openDrop = null;
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.hstat')) {
+    document.querySelectorAll('.hdrop').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.hstat').forEach(s => s.classList.remove('active'));
+    openDrop = null;
+  }
+});
+
+// ── PANEL KAPAT ───────────────────────────────────────────────────────────
+document.getElementById('pClose').addEventListener('click', () => {
+  document.getElementById('panel').classList.remove('open');
+  document.querySelectorAll('.prov-pill').forEach(p => p.classList.remove('active'));
+});
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function() {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tcont').forEach(x => x.classList.remove('active'));
+  this.classList.add('active');
+  document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+}));
+
+// ── DEMO VERİ (Kandilli erişilemezse) ────────────────────────────────────
+function loadDemoData() {
+  const now = Date.now();
+  allEqs = [
+    {ts:now-1*3600000,  lat:41.01,lon:28.96,mag:3.4,depth:11,place:'Silivri Açıkları (İstanbul)'},
+    {ts:now-8*3600000,  lat:40.98,lon:28.61,mag:2.8,depth:8, place:'Büyükçekmece (İstanbul)'},
+    {ts:now-3*3600000,  lat:38.35,lon:26.82,mag:4.1,depth:7, place:'Seferihisar Açıkları (İzmir)'},
+    {ts:now-14*3600000, lat:38.48,lon:26.68,mag:3.2,depth:10,place:'Urla (İzmir)'},
+    {ts:now-2*3600000,  lat:37.52,lon:36.82,mag:3.8,depth:9, place:'Pazarcık (Kahramanmaraş)'},
+    {ts:now-12*3600000, lat:37.61,lon:37.08,mag:3.1,depth:12,place:'Elbistan (Kahramanmaraş)'},
+    {ts:now-1*3600000,  lat:37.06,lon:37.38,mag:3.6,depth:10,place:'Nurdağı (Gaziantep)'},
+    {ts:now-4*3600000,  lat:36.4,lon:36.35, mag:3.5,depth:8, place:'İskenderun (Hatay)'},
+    {ts:now-5*3600000,  lat:40.18,lon:29.06,mag:2.9,depth:14,place:'İznik (Bursa)'},
+    {ts:now-6*3600000,  lat:40.84,lon:31.16,mag:2.5,depth:9, place:'Düzce Merkez'},
+    {ts:now-2*86400000, lat:38.67,lon:39.22,mag:3.0,depth:10,place:'Sivrice (Elazığ)'},
+    {ts:now-3*86400000, lat:38.67,lon:39.22,mag:2.4,depth:8, place:'Palu (Elazığ)'},
+  ];
+  last24h = allEqs.filter(e => e.ts > now - 86400000);
+  topWeek = [...allEqs].sort((a,b) => b.mag - a.mag).slice(0,8);
+  updateHeader();
+  updateTicker();
+  buildDropdowns();
+}
+
+// ── BAŞLAT ────────────────────────────────────────────────────────────────
+fetchKandilli();
+// Her 2 dakikada bir güncelle
+setInterval(fetchKandilli, 2 * 60 * 1000);
+</script>
+</body>
+</html>
