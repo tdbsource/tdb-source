@@ -536,16 +536,25 @@ async function openPanel(cityId, cityName) {
       mag: e.mag, place: e.place, depth: e.depth,
       time: timeAgo(e.ts)
     }));
-    const res = await fetch('/api/analyze', {
+    const maxMag = eqs.length ? Math.max(...eqs.map(e => e.mag)).toFixed(1) : null;
+    const apiRes = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ city: cityName, earthquakes: eqData })
+      body: JSON.stringify({ city: cityName, earthquakes: eqData, maxMag, count: eqs.length })
     });
-    const data = await res.json();
+    if (!apiRes.ok) {
+      const err = await apiRes.json().catch(() => ({}));
+      throw new Error(err.error || 'HTTP ' + apiRes.status);
+    }
+    const data = await apiRes.json();
     document.getElementById('aiTxt').textContent = data.analysis || 'Analiz alınamadı.';
   } catch(e) {
-    document.getElementById('aiTxt').textContent =
-      cityName + ' için bu hafta ' + eqs.length + ' sismik hareket kaydedilmiştir. Detaylı analiz için internet bağlantısını kontrol edin.';
+    console.error('Gemini hatası:', e);
+    const fallback = eqs.length
+      ? cityName + ' için son 7 günde ' + eqs.length + ' sismik hareket kaydedildi. En büyük: M' +
+        Math.max(...eqs.map(x=>x.mag)).toFixed(1) + '. Yapay zeka analizi şu an alınamıyor.'
+      : cityName + ' için bu hafta kayıtlı sismik hareket bulunmuyor.';
+    document.getElementById('aiTxt').textContent = fallback;
   }
 }
 
