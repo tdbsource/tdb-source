@@ -58,7 +58,8 @@ export default async function handler(req, res) {
           depth:     Math.abs(depth),
           magnitude: p.mag ?? p.magnitude ?? 0,
           location,
-          province:  nearest ? nearest.toLowerCase() : '',
+          // province'a nearest'i yaz — frontend il eşleşmesi için
+          province:  nearest || '',
           date:      p.time
         };
       });
