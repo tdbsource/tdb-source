@@ -76,7 +76,7 @@ export default async function handler(req, res) {
       try { body = JSON.parse(body); } catch { body = {}; }
     }
 
-    const { city, earthquakes, count, maxMag } = body || {};
+    const { city, cityId, earthquakes, count, maxMag, ctx } = body || {};
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY eksik' });
@@ -96,11 +96,18 @@ export default async function handler(req, res) {
       ? earthquakes.slice(0, 10).map(e => `M${parseFloat(e.mag).toFixed(1)} · ${e.place} · ${e.depth}km · ${e.time}`).join('\n')
       : 'Son 7 günde kayıtlı hareket yok.';
 
-    // Kısa prompt — token tasarrufu
+    // İl bağlamını prompt'a ekle — her il için özgün analiz üretilsin
+    const ctxNote = ctx
+      ? `Tektonik bağlam: ${city}, ${ctx.fay} konumundadır. ${ctx.not}.`
+      : ``;
+
     const prompt =
-      `Sismoloji uzmanı olarak Türkiye'nin ${city} ili için son 7 günlük deprem özetini analiz et.\n` +
-      `Toplam olay: ${eqCount} | En büyük: M${topMag}\n\n${lines}\n\n` +
-      `3 cümlelik Türkçe analiz yaz: aktivite düzeyi, derinlik/büyüklük yorumu, fay hattı riski. Başlık veya madde işareti kullanma.`;
+      `Sen bir sismoloji uzmanısın. Türkiye'nin ${city} ili için son deprem verilerini analiz et.\n\n` +
+      `${ctxNote}\n\n` +
+      `Güncel veriler (son 3 gün, toplam ${eqCount} olay, en büyük M${topMag}):\n${lines}\n\n` +
+      `Yukarıdaki tektonik bağlamı ve güncel verileri birlikte değerlendirerek 3 cümlelik özgün Türkçe analiz yaz. ` +
+      `Bu ilin kendine özgü fay yapısına ve tarihsel sismisitesine mutlaka değin. ` +
+      `Başlık, madde işareti veya genel kalıplar kullanma; doğrudan analize gir.`;
 
     // Model listesi — ücretsiz planda çalışanlar
     const MODELS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite'];
