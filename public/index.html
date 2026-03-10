@@ -213,15 +213,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   .tabs{padding:0 16px}
   .tcont{padding:14px 16px}
 
-  /* Overlay — panel açıkken arkayı karart */
-  .mob-overlay{
-    display:none;
-    position:fixed;inset:0;
-    background:rgba(0,0,0,.35);
-    z-index:199;
-    backdrop-filter:blur(2px)
+  /* Mobile'da tüm blur efektlerini kaldır — GPU/render sorunu */
+  .panel,.region-card,.region-title,.ai-block,.ticker,.header,.hdrop,.tip{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
   }
-  .mob-overlay.on{display:block}
+  .panel{background:rgba(220,224,230,1)}
+  .region-card{background:rgba(255,255,255,0.85)}
+  .ai-block{background:rgba(255,255,255,0.9)}
+
+  /* Overlay — mobile'da devre dışı */
+  .mob-overlay{display:none !important}
 }
 </style>
 </head>
