@@ -1,4 +1,4 @@
-
+export default async function handler(req, res) {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,12 +14,10 @@ export default async function handler(req, res) {
 
   const { password, title, message } = body || {};
 
-  // Şifre kontrolü
   const adminPass = process.env.ADMIN_PASSWORD;
   if (!adminPass) return res.status(500).json({ error: 'ADMIN_PASSWORD tanımlı değil' });
   if (password !== adminPass) return res.status(401).json({ error: 'Yetkisiz erişim' });
 
-  // Alan kontrolü
   if (!title || !message) return res.status(400).json({ error: 'Başlık ve mesaj zorunlu' });
 
   const apiKey = process.env.ONESIGNAL_API_KEY;
