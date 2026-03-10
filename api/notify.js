@@ -1,8 +1,4 @@
-/**
- * /api/notify
- * POST → OneSignal üzerinden güvenli bildirim gönder
- * Admin şifresi Vercel environment variable'da saklanır
- */
+
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -43,6 +39,7 @@ export default async function handler(req, res) {
         headings: { tr: title, en: title },
         contents: { tr: message, en: message },
         chrome_web_icon: 'https://tdb-source.vercel.app/icons/icon-192.png',
+        url: 'https://tdb-source.vercel.app/bildirim.html?title=' + encodeURIComponent(title) + '&msg=' + encodeURIComponent(message),
       })
     });
 
