@@ -1,1 +1,24 @@
-
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDB Source — Bağlantı Yok</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#1c2030;color:#fff;font-family:'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px}
+  .logo{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .gen{font-size:10px;letter-spacing:.2em;text-transform:uppercase;background:linear-gradient(90deg,#7c3aed,#1a1a2e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;margin-top:2px}
+  .icon{font-size:48px;margin-bottom:8px;opacity:.6}
+  .msg{font-size:15px;color:rgba(255,255,255,.6);text-align:center;line-height:1.6;max-width:280px}
+  .btn{margin-top:8px;padding:10px 24px;background:#7c3aed;color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.04em}
+</style>
+</head>
+<body>
+  <div class="logo">TDB Source™</div>
+  <div class="gen">Generation 8</div>
+  <div class="icon">📡</div>
+  <div class="msg">İnternet bağlantısı bulunamadı.<br>Canlı deprem verisi için bağlantını kontrol et.</div>
+  <button class="btn" onclick="location.reload()">Tekrar Dene</button>
+</body>
+</html>
