@@ -1,9 +1,3 @@
-/**
- * /api/analyze
- * GET  → AFAD deprem verisi proxy (Gemini YOK)
- * POST → Gemini metin analizi (sadece il tıklandığında frontend'den çağrılır)
- */
-
 const cache = new Map();
 const CACHE_TTL = 10 * 60 * 1000; // 10 dk — aynı ile tekrar tıklanırsa Gemini'ye gitme
 
@@ -83,8 +77,7 @@ export default async function handler(req, res) {
     if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY eksik' });
     if (!city)   return res.status(400).json({ error: 'city eksik' });
 
-    // Cache — aynı il 10 dk içinde tekrar isterse Gemini'ye gitme
-    const cacheKey = city.toLowerCase();
+      const cacheKey = city.toLowerCase();
     const hit = cache.get(cacheKey);
     if (hit && Date.now() - hit.ts < CACHE_TTL) {
       return res.status(200).json({ analysis: hit.analysis, cached: true });
