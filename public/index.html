@@ -1007,14 +1007,14 @@ fetchKandilli();
 // Her 2 dakikada bir güncelle
 setInterval(fetchKandilli, 60 * 1000); // Her 60 saniyede EMSC güncelle
 </script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('TDB Source SW aktif'))
-      .catch(e => console.warn('SW hatası:', e));
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "6629a189-68c9-4af9-9790-912b49ca6c9a",
+    });
   });
-}
 </script>
 </body>
 </html>
