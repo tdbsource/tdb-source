@@ -1,1 +1,24 @@
-
+{
+  "name": "TDB Source — Generation 8",
+  "short_name": "TDB Source",
+  "description": "Türkiye Gerçek Zamanlı Deprem Takip Platformu",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#d6d9de",
+  "theme_color": "#1c2030",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
