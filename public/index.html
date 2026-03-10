@@ -150,79 +150,105 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 /* ── MOBİL ──────────────────────────────────────────────────── */
 @media(max-width:768px){
-  /* HTML/body scroll aç */
-  html,body{overflow:auto;height:auto}
-  .app{height:auto;min-height:100vh}
-  .body{flex-direction:column;overflow:visible;height:auto}
+  /* Tüm blur kaldır */
+  *{backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
 
-  /* Header — sadeleştir */
-  .header{padding:0 14px;height:50px;gap:8px}
-  .logo-name{font-size:17px}
+  /* Scroll yok, tam ekran */
+  html,body{overflow:hidden;height:100dvh}
+  .app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+  .body{flex:1;min-height:0;overflow:hidden}
+
+  /* Ticker */
+  .ticker{height:24px;flex-shrink:0}
+  .t-label{padding:0 8px;font-size:7.5px}
+  .t-item{font-size:8.5px;padding:0 12px}
+
+  /* Header */
+  .header{padding:0 10px;height:40px;flex-shrink:0}
+  .logo-name{font-size:14px}
   .logo-gen{display:none}
-  .h-stats{gap:2px}
-  .hstat{padding:4px 8px}
-  .hstat-lbl{font-size:7px}
-  .hstat-val{font-size:11px}
-  .h-div{height:18px}
-  .hdrop{min-width:220px;right:-10px}
-
-  /* Veri kaynağı hstat'ı gizle */
+  .h-stats{gap:0}
+  .hstat{padding:3px 6px}
+  .hstat-lbl{font-size:6px}
+  .hstat-val{font-size:10px}
+  .h-div{height:14px}
   .hstat:last-of-type{display:none}
+  .hdrop{min-width:190px;right:-6px}
 
-  /* Map area — scroll edilebilir liste */
-  .map-area{padding:10px 10px;height:auto;min-height:auto;overflow:visible;background:var(--bg)}
+  /* Map area — kalan yüksekliği tam doldur */
+  .map-area{flex:1;padding:5px;min-height:0;overflow:hidden;background:var(--bg)}
   .map-area::before{display:none}
 
-  /* Bölge kartları — tek sütun, kompakt */
-  .regions{display:flex;flex-direction:column;gap:8px;width:100%;height:auto;max-width:100%;max-height:none}
-  .region-card{border-radius:10px;padding:0;overflow:visible}
-  .region-title{border-radius:10px 10px 0 0;font-size:8px;padding:6px 10px;position:static;top:auto}
-  .prov-list{flex-direction:row;flex-wrap:wrap;gap:4px;padding:8px}
-  .prov-pill{min-height:28px;padding:4px 9px;border-radius:14px;flex:0 0 auto}
-  .prov-name{font-size:11px}
-  .rdot{width:6px;height:6px}
+  /* 2x3 grid, tam sığsın */
+  .regions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:repeat(3,1fr);
+    gap:4px;
+    width:100%;height:100%;
+    max-width:100%;max-height:100%
+  }
 
-  /* Panel — alttan açılan full-screen drawer */
+  /* Kart */
+  .region-card{
+    border-radius:7px;padding:0;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    min-height:0;
+    background:rgba(255,255,255,0.82)
+  }
+
+  /* Bölge başlığı */
+  .region-title{
+    font-size:6.5px;padding:3px 6px;
+    border-radius:7px 7px 0 0;
+    position:static;margin:0;flex-shrink:0
+  }
+
+  /* İller — wrap, kart içinde scroll */
+  .prov-list{
+    flex-direction:row;flex-wrap:wrap;
+    gap:2px;padding:3px 4px;
+    overflow-y:auto;overflow-x:hidden;
+    align-content:flex-start;flex:1
+  }
+  .prov-list::-webkit-scrollbar{width:2px}
+  .prov-list::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1)}
+
+  /* İl hapı */
+  .prov-pill{
+    padding:2px 5px;border-radius:8px;
+    flex:0 0 auto;gap:2px;min-height:0
+  }
+  .prov-name{font-size:8.5px}
+  .rdot{width:4px;height:4px}
+
+  /* Panel — alttan drawer */
   .panel{
-    position:fixed;
-    bottom:0;left:0;right:0;
-    width:100%;
-    height:88vh;
+    position:fixed;bottom:0;left:0;right:0;
+    width:100%;height:90dvh;
     border-left:none;
     border-top:1px solid var(--border2);
-    border-radius:18px 18px 0 0;
+    border-radius:14px 14px 0 0;
     transform:translateY(100%);
-    transition:transform .38s cubic-bezier(.4,0,.2,1);
+    transition:transform .32s cubic-bezier(.4,0,.2,1);
     z-index:200;
-    box-shadow:0 -8px 32px rgba(0,0,0,.15)
+    background:rgb(220,224,230);
+    box-shadow:0 -4px 20px rgba(0,0,0,.1)
   }
   .panel.open{transform:translateY(0)}
-
-  /* Panel içi drag handle */
   .panel::before{
-    content:'';
-    display:block;
-    width:36px;height:4px;
-    background:rgba(0,0,0,.15);
-    border-radius:2px;
-    margin:10px auto 0;
-    flex-shrink:0
+    content:'';display:block;
+    width:30px;height:3px;
+    background:rgba(0,0,0,.15);border-radius:2px;
+    margin:7px auto 0;flex-shrink:0
   }
-  .p-head{padding:14px 16px 12px}
-  .p-city{font-size:20px}
-  .tabs{padding:0 16px}
-  .tcont{padding:14px 16px}
-
-  /* Mobile'da tüm blur efektlerini kaldır — GPU/render sorunu */
-  .panel,.region-card,.region-title,.ai-block,.ticker,.header,.hdrop,.tip{
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
-  }
-  .panel{background:rgba(220,224,230,1)}
-  .region-card{background:rgba(255,255,255,0.85)}
+  .p-head{padding:10px 14px 10px}
+  .p-city{font-size:18px}
   .ai-block{background:rgba(255,255,255,0.9)}
+  .tabs{padding:0 14px}
+  .tcont{padding:12px 14px}
 
-  /* Overlay — mobile'da devre dışı */
   .mob-overlay{display:none !important}
 }
 </style>
