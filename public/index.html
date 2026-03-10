@@ -347,6 +347,91 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <div class="mob-overlay" id="mobOverlay"></div>
 
 <script>
+
+// ── 81 İL BAĞLAM VERİTABANI — fay hattı, jeolojik yapı, tarihsel risk ────
+const IL_CTX = {
+  istanbul:    {fay:"Kuzey Anadolu Fayi'nin Marmara kolu üzerinde",    not:"1999 Gölcük depreminin ardindan KAF'in Istanbul geçisinde büyük deprem birikimi sürüyor"},
+  kocaeli:     {fay:"Kuzey Anadolu Fayi'nin ana kolu üzerinde",        not:"1999 Mw7.6 Izmit depremiyle taninan, Türkiye'nin en aktif fay segmentlerinden birini barindirir"},
+  sakarya:     {fay:"Kuzey Anadolu Fayi'nin yakin geçisinde",          not:"1999 depremi sirasinda yogun hasar alan bölge; fay aktivitesi süregelmektedir"},
+  duzce:       {fay:"Kuzey Anadolu Fayi'nin Düzce segmenti üzerinde",  not:"1999 Mw7.2 Düzce depremiyle taninan bölge; artci sismisite hâlâ gözlemlenmektedir"},
+  bolu:        {fay:"Kuzey Anadolu Fayi'nin Abant segmenti yakininda", not:"KAF'in kuzey koluna yakin, Abant segmenti bölgeyi etkiler"},
+  bursa:       {fay:"Kuzey Anadolu Fayi'nin güney kollari etkisinde",  not:"Bursa fay zonu ve KAF güney dallari bölgede aktiftir"},
+  yalova:      {fay:"Kuzey Anadolu Fayi Marmara segmenti yakininda",   not:"1999 depremi Yalova'da büyük yikima neden olmustu; deniz tabani fayi sehre yakin geçer"},
+  tekirdag:    {fay:"Kuzey Anadolu Fayi'nin Marmara kolu üzerinde",    not:"Marmara Denizi'ndeki aktif fay segmentlerine kiyi mesafesindedir"},
+  edirne:      {fay:"Kuzey Anadolu ve Dogu Avrupa fay sistemleri sinirinda", not:"Balkan sismisitesinin Trakya'ya yansidigi, görece düsük aktiviteli bölge"},
+  kirklareli:  {fay:"Kuzey Anadolu Fayi'nin en bati ucuna yakin",      not:"Balkan kökenli sismisitenin etkisinde; Trakya'nin görece sakin bir bölgesi"},
+  canakkale:   {fay:"Kuzey Anadolu Fayi'nin Ege'ye açildigi bölgede",  not:"Biga Yarimadasi fay sistemleri ve Ege açilma tektonigiyle sekillenen orta riskli bölge"},
+  balikesir:   {fay:"Ege açilma fay sistemleri içinde",                not:"Sindirgi ve Bigadiç çevresinde periyodik sismik aktivite gözlemlenir"},
+  bilecik:     {fay:"Kuzey Anadolu Fayi'nin güney kollari etkisinde",  not:"KAF'in Sakarya koluna yakin konumuyla orta düzey sismik aktivite barindirir"},
+  izmir:       {fay:"Ege açilma tektonigiyle sekillenmis Gediz Grabeni fay sistemi üzerinde", not:"2020 Mw6.9 Seferihisar depremiyle bölgedeki aktif normal faylar yeniden gündeme geldi"},
+  manisa:      {fay:"Gediz Grabeni ve Büyük Menderes Fayi yakin kusaginda", not:"Tarihsel dönemde yikici depremler yasamis; graben sistemi aktif olmaya devam ediyor"},
+  aydin:       {fay:"Büyük Menderes Grabeni fay sistemi üzerinde",     not:"1955 Söke ve çevresindeki tarihi depremlerle bilinen aktif graben bölgesi"},
+  mugla:       {fay:"Ege açilma faylari ve kiyi normal faylari üzerinde", not:"Datça-Bozburun yarimadasindan geçen faylar ve Girit yay sistemi bölgeyi etkiler"},
+  denizli:     {fay:"Büyük Menderes ve Gediz graben fay sistemleri arasinda", not:"Pamukkale travertenleri aktif jeotermal ve sismik ortamin göstergesidir"},
+  kutahya:     {fay:"Kuzey Anadolu Fayi'nin güney kollari etkisinde",  not:"1970 Gediz depreminin yasandigi il; güneybati kollar aktivitesini sürdürür"},
+  usak:        {fay:"Gediz Grabeni'nin kuzey kollari yakininda",        not:"Ege açilma rejiminin iç kesimlere yansidigi görece sakin bir bölge"},
+  afyon:       {fay:"Frig Vadisi fay sistemi ve Ege iç faylari etkisinde", not:"1995 Dinar depremiyle taninan il; bölgede aktif normal faylar varligini sürdürür"},
+  eskisehir:   {fay:"Kuzey Anadolu Fayi'nin güneybati kollari yakininda", not:"Inönü-Dodurga fay zonu bölgeyi etkiler; tarihsel deprem sicili ilimlidir"},
+  ankara:      {fay:"Kuzey Anadolu Fayi'nin güney kollari etkisinde",  not:"Elmadag fay segmenti baskente en yakin aktif fay olup bölgesel aktivite gözlemlenir"},
+  konya:       {fay:"Orta Anadolu fay sistemleri içinde",              not:"Tuz Gölü fay zonu ve Sultandagi segmenti zaman zaman aktiflesir"},
+  karaman:     {fay:"Ecemis Fayi'nin yakin kusaginda",                  not:"Ecemis koridoru, Orta Anadolu'nun önemli sismik yapilarindan biridir"},
+  kayseri:     {fay:"Erciyes Volkanik bölgesi ve Orta Anadolu fay sistemi üzerinde", not:"Volkanik zemin yapisi ve yerel faylar birlikte sismik riski sekillendiriyor"},
+  sivas:       {fay:"Kuzey Anadolu Fayi'nin iç kollari yakininda",     not:"KAF'in Refahiye segmenti Sivas'in kuzeyinden geçer; tarihsel deprem sicili önemlidir"},
+  yozgat:      {fay:"Kuzey Anadolu Fayi'nin güney kollari etkisinde",  not:"Yerköy-Akdagmadeni bölgesindeki faylar zaman zaman aktiflesir"},
+  kirikkale:   {fay:"Kuzey Anadolu Fayi'na yakin konumda",             not:"KAF'in en yakin geçtigi yerlesim merkezlerinden biri; sürekli izleme altindadir"},
+  cankiri:     {fay:"Kuzey Anadolu Fayi'nin kuzey kollari yakininda",  not:"KAF'in Ilgaz segmenti il sinirlarini etkiler"},
+  kirsehir:    {fay:"Orta Anadolu fay sistemleri içinde",              not:"Kaman civarindaki yerel faylar bölgesel aktiviteye katki saglar"},
+  nevsehir:    {fay:"Volkanik Kapadokya zemini üzerinde",              not:"Erciyes ve Hasan Dagi volkanizmasiyla sekillenmis zemin yapisi sismik dalgalari farkli iletir"},
+  aksaray:     {fay:"Tuz Gölü fay zonu ve Ecemis Fayi arasinda",       not:"Hasan Dagi etekleri ve Tuz Gölü havzasi bölgesel fay agiyla iç içedir"},
+  nigde:       {fay:"Ecemis Fayi üzerinde",                            not:"Ecemis koridoru Türkiye'nin önemli kita-içi faylarindan biri olup bölge periyodik aktivite gösterir"},
+  hatay:       {fay:"Dogu Anadolu Fayi'nin güney ucu ve Ölü Deniz Fayi baglantisindan", not:"2023 Mw7.8 Kahramanmaras depremi zincirinde en agir hasari yasayan il; fay aktivitesi sürmektedir"},
+  kahramanmaras:{fay:"Dogu Anadolu Fayi ile Nurdag-Islahiye segmenti üzerinde", not:"6 Subat 2023 Mw7.8 depremiyle adi özdeslesен il; kirik üzerinde yüksek artci sismisite devam etmektedir"},
+  gaziantep:   {fay:"Dogu Anadolu Fayi'nin güneybati kollari etkisinde", not:"2023 depremi serisinden etkilenen bölge; DAF kollari il sinirlarindan geçmektedir"},
+  adiyaman:    {fay:"Dogu Anadolu Fayi üzerinde",                      not:"2023 depremi zincirinde büyük yikim yasayan il; fay segmenti aktif olmaya devam ediyor"},
+  malatya:     {fay:"Dogu Anadolu Fayi'nin Pütürge segmenti üzerinde", not:"DAF'in en aktif segmentlerinden biri il içinden geçer; 2023 sonrasi artci aktivite gözlemlenmektedir"},
+  elazig:      {fay:"Dogu Anadolu Fayi'nin Palu segmenti üzerinde",    not:"2020 Mw6.8 Sivrice depremiyle gündemdeki DAF segmenti bölgede aktif kalmaya devam ediyor"},
+  adana:       {fay:"Dogu Anadolu Fayi'nin güney kollari ve Toros kivrim kusagi etkisinde", not:"Ceyhan fay zonu ve 1998 Ceyhan depremi bölgenin sismik potansiyelini ortaya koymustur"},
+  mersin:      {fay:"Toros kivrim-itme kusagi ve Akdeniz yay sistemi etkisinde", not:"Kibris yayinin yarattig basi ve yerel bindirme faylari bölgeyi etkiler"},
+  antalya:     {fay:"Kibris yay sistemi ve Toros dag içi faylari etkisinde", not:"Elmali ve Finike çevresindeki faylar tarihsel dönemde aktif olmustur"},
+  isparta:     {fay:"Isparta açisi fay sistemi üzerinde",               not:"Isparta açisi Türkiye'nin en karmasik tektonik yapilarindan biri; çok yönlü fay gerilimi barindirir"},
+  burdur:      {fay:"Burdur fay zonu üzerinde",                        not:"1971 Burdur depremiyle taninan aktif graben sistemi; fay hatti il merkezine yakin geçer"},
+  osmaniye:    {fay:"Dogu Anadolu Fayi'nin güney uzantilari etkisinde", not:"2023 depremi zincirinden etkilenen bölge; Nurdag-Islahiye segmentine yakin konumdadir"},
+  kilis:       {fay:"Dogu Anadolu Fayi'nin güney uç segmenti yakininda", not:"DAF'in Ölü Deniz sistemine baglandigi noktaya yakin; 2023 sonrasi yüksek sismisite bölgesinde"},
+  erzincan:    {fay:"Kuzey Anadolu Fayi'nin ana kolu üzerinde",        not:"1939 Mw7.8 Erzincan depremi bu ilin tarihinde derin iz birakmistir; KAF segmenti hâlâ aktiftir"},
+  tunceli:     {fay:"Dogu Anadolu Fayi'nin kuzey kollari üzerinde",    not:"Palu-Karliova bölgesine yakinligi nedeniyle DAF kaynakli sismisiteden dogrudan etkilenir"},
+  bingol:      {fay:"Kuzey Anadolu ve Dogu Anadolu Faylari'nin birlesim bölgesi yakininda", not:"1971 Mw6.8 ve 2003 Mw6.4 depremleriyle taninan; KAF-DAF kavsagina çok yakin konumdadir"},
+  erzurum:     {fay:"Kuzey Anadolu Fayi'nin dogu segmenti ve Pasinler fay zonu üzerinde", not:"1983 Horasan-Narman depremi bölgenin aktif sismik yapisini gözler önüne sermistir"},
+  kars:        {fay:"Kuzey Anadolu Fayi'nin dogu ucu yakininda",       not:"Kafkas tektonik sisteminin etkisinde; bölgede derin odakli depremler gözlemlenir"},
+  ardahan:     {fay:"Kafkas fay sistemi ve Dogu Anadolu gerilme bölgesi etkisinde", not:"Gürcistan sinirana yakin Kafkas kökenli sismisiteden etkilenir"},
+  igdir:       {fay:"Kuzey Anadolu ve Kafkas fay sistemleri arasinda", not:"Iran-Türkiye sinir tektonik sisteminin etkisinde; Agri Dagi volkanizmasiyla iliskili aktivite gözlemlenir"},
+  agri:        {fay:"Kuzey ve Dogu Anadolu fay sistemleri arasinda",   not:"1976 Caldiran depremiyle taninan komsu Van gölü bölgesine yakinligiyla sismik dikkat gerektirir"},
+  van:         {fay:"Van Gölü dogu kiyi faylari ve Iran sinir fay sistemi üzerinde", not:"2011 Mw7.2 Van depremi bölgenin aktif tektonik yapisini dramatik biçimde ortaya koydu"},
+  bitlis:      {fay:"Bitlis-Zagros bindirme kusagi üzerinde",           not:"Arabistan-Avrasya levhasi çarpísma sinirana yakin; derin bindirme faylari aktiftir"},
+  mus:         {fay:"Dogu Anadolu Fayi'nin kuzeyi ve Van Gölü havzasi arasinda", not:"1966 Varto depremi bu bölgenin sismik kapasitesini tarihe geçirmistir"},
+  hakkari:     {fay:"Zagros bindirme kusagi ve Iran sinir fay sistemi üzerinde", not:"Arabistan levhasinin Avrasya'ya çarpísma bölgesi; derin ve orta derinlikli depremler siktir"},
+  siirt:       {fay:"Bitlis-Zagros kusagi ve Dogu Anadolu fay sistemi etkisinde", not:"Orta derinlikli bindirme kaynakli depremler bölgede zaman zaman hissedilir"},
+  batman:      {fay:"Güneydogu Anadolu bindirme kusagi etkisinde",      not:"Petrol havzasinin altindaki kivrim-bindirme yapisi bölgede orta düzey sismisiteye zemin hazirlar"},
+  sirnak:      {fay:"Zagros-Toros bindirme kusagi üzerinde",            not:"Irak sinirana yakin Zagros kökenli sismisiteden etkilenir; derin odakli olaylar gözlemlenir"},
+  diyarbakir:  {fay:"Güneydogu Anadolu bindirme kusagi üzerinde",       not:"Dicle havzasindaki kivrim-bindirme yapilari bölgesel sismisiteye katki saglar"},
+  mardin:      {fay:"Güneydogu Anadolu bindirme kusaginin güney kismi etkisinde", not:"Suriye sinirana yakin; bölgede yüzey faylari yerine derin bindirme kaynaklari hakimdir"},
+  sanliurfa:   {fay:"Güneydogu Anadolu bindirme kusagi etkisinde",      not:"GAP havzasinda görece sakin bir deprem ortami; derin bindirme kaynakli olaylar kaydedilir"},
+  samsun:      {fay:"Kuzey Anadolu Fayi'nin Karadeniz'e açilan kollari yakininda", not:"KAF'in Karadeniz denizalti segmentlerine kiyi uzakligindadir; orta düzey aktivite gözlemlenir"},
+  corum:       {fay:"Kuzey Anadolu Fayi'nin güney kollari etkisinde",   not:"KAF'in Osmancik segmenti il sinirlarindan geçer; tarihsel deprem sicili kayda degerdir"},
+  amasya:      {fay:"Kuzey Anadolu Fayi yakin kusaginda",               not:"1939 ve 1942 depremlerinden etkilenen bölge; KAF'in kuzey koluna yakin konumlanmistir"},
+  tokat:       {fay:"Kuzey Anadolu Fayi üzerinde",                      not:"KAF'in Niksar segmenti Tokat'tan geçer; 1942 Niksar-Erbaa depremi bu segmentin tarihsel kaydıdır"},
+  ordu:        {fay:"Kuzey Anadolu Fayi'nin Karadeniz kollari yakininda", not:"KAF'in Karadeniz kiyi segmentleri bölgeyi etkiler; zaman zaman hissedilen depremler kaydedilir"},
+  giresun:     {fay:"Kuzey Anadolu Fayi Karadeniz segmenti etkisinde",  not:"Karadeniz kiyi seridindeki fay yapilari bölgede orta düzey sismisiteye yol açar"},
+  trabzon:     {fay:"Kuzey Anadolu Fayi'nin Dogu Karadeniz kolu yakininda", not:"Dogu Karadeniz'in daglik yapisi fay aktivitesini sinirli tutsa da bölgesel sismisite devam eder"},
+  rize:        {fay:"Dogu Karadeniz fay sistemi etkisinde",              not:"Bölgede fay aktivitesi görece düsük; KAF'in dogu uzantilari etkisini hissettirmektedir"},
+  artvin:      {fay:"Kafkas fay sistemi ve KAF'in dogu ucu yakininda",  not:"Gürcistan sinirana yakin Kafkas tektonik sisteminin etkisinde; zaman zaman orta büyüklükte depremler kaydedilir"},
+  gumushane:   {fay:"Kuzey Anadolu Fayi'nin Kelkit vadisi yakin kusaginda", not:"KAF'in Kelkit vadisi segmentine yakin; 1939 büyük depremleri bu bölgeyi de etkilemisti"},
+  bayburt:     {fay:"Kuzey Anadolu Fayi'nin Kelkit segmenti üzerinde",  not:"1939 Erzincan depremi zincirinin geçtigi Kelkit vadisinde yer alir; fay segmenti aktiftir"},
+  kastamonu:   {fay:"Kuzey Anadolu Fayi'nin kuzey kolu yakininda",      not:"KAF'in Kastamonu-Küre segmenti bölgeyi etkiler; Karadeniz kiyi yakinligi sismik potansiyeli arttirir"},
+  sinop:       {fay:"Kuzey Anadolu Fayi Karadeniz segmenti yakininda",  not:"Karadeniz açiklarindaki denizalti fay segmentleri bölgeyi uzaktan etkiler"},
+  zonguldak:   {fay:"Kuzey Anadolu Fayi'nin Bati Karadeniz kollari yakininda", not:"KAF'in Düzce-Bolu segmentine yakinligiyla orta düzey sismik aktivite gözlemlenir"},
+  bartin:      {fay:"Kuzey Anadolu Fayi Bati Karadeniz segmenti etkisinde", not:"KAF'in kuzey kolundan etkilenen kiyi seridi; zaman zaman hissedilen sarsíntilar kaydedilir"},
+  karabuk:     {fay:"Kuzey Anadolu Fayi yakin kusaginda",               not:"Safranbolu çevresindeki yerel faylar ve KAF güney kolu bölgede orta düzey aktiviteye yol açar"},
+};
 // ── BÖLGELER ──────────────────────────────────────────────────────────────
 const REGIONS = [
   { id:'marmara', title:'Marmara', provs:[
@@ -713,7 +798,7 @@ async function openPanel(cityId, cityName) {
         </div>`).join('')
     : '<div style="font-size:11px;color:var(--text3);padding:10px 0;font-family:\'JetBrains Mono\',monospace">Bu hafta kayıtlı hareket yok.</div>';
 
-  // ── TAHMİN YÜZDELERİ — tamamen istatistiksel ──────────────
+  // ── TAHMİN YÜZDELERİ — tamamen istatistiksel, Gemini'siz ──────────────
   // Gutenberg-Richter yasasına dayalı basit olasılık modeli
   const weekCount = eqs.length;
   const maxM = eqs.length ? Math.max(...eqs.map(e => e.mag)) : 0;
@@ -740,8 +825,8 @@ async function openPanel(cityId, cityName) {
   rp.textContent = '● ' + label;
   rp.className = 'risk-pill ' + risk;
 
-  // ──— sadece metin analizi, sadece il tıklandığında ───────────────
-  // Yüzdeler ve risk zaten hesaplandı, sadece açıklayıcı metin üretir
+  // ── GEMİNİ — sadece metin analizi, sadece il tıklandığında ───────────────
+  // Yüzdeler ve risk zaten hesaplandı, Gemini sadece açıklayıcı metin üretir
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
 
   const eqData = eqs.slice(0, 10).map(e => ({
@@ -755,7 +840,7 @@ async function openPanel(cityId, cityName) {
     const apiRes = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ city: cityName, earthquakes: eqData, count: weekCount, maxMag: maxM.toFixed(1) })
+      body: JSON.stringify({ city: cityName, cityId, earthquakes: eqData, count: weekCount, maxMag: maxM.toFixed(1), ctx: IL_CTX[cityId] || null })
     });
     const data = await apiRes.json();
     if (data.analysis) {
@@ -764,30 +849,54 @@ async function openPanel(cityId, cityName) {
       throw new Error(data.error || 'boş yanıt');
     }
   } catch(e) {
-    // başarısız → istatistiksel metin üret (tamamen Source)
-    document.getElementById('aiTxt').textContent = buildLocalAnalysis(cityName, eqs, risk, maxM, weekCount);
+    // Gemini başarısız → istatistiksel metin üret (tamamen Gemini'siz)
+    document.getElementById('aiTxt').textContent = buildLocalAnalysis(cityId, cityName, eqs, risk, maxM, weekCount);
   }
 }
 
-// ── YEREL ANALİZ (TRC) ─────────────────────────────────────────
-function buildLocalAnalysis(city, eqs, risk, maxM, count) {
-  if (count === 0)
-    return city + " ilinde son 7 günde kayıtlı sismik hareket bulunmamaktadır. Bölge şu an sismik olarak sakin görünmektedir.";
+// ── YEREL ANALİZ (Gemini olmadan) — il bağlamı ile zenginleştirilmiş ──────
+function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count) {
+  const ctx = IL_CTX[cityId];
+
+  if (count === 0) {
+    const sakin = ctx
+      ? city + ", " + ctx.fay + " konumundadır. Son 3 günde kayıtlı sismik hareket bulunmamaktadır; ancak bölgenin tektonik yapısı sürekli izleme gerektirmektedir."
+      : city + " ilinde son günlerde kayıtlı sismik hareket bulunmamaktadır. Bölge şu an sismik olarak sakin görünmektedir.";
+    return sakin;
+  }
 
   const avgDepth = (eqs.reduce((s,e) => s + e.depth, 0) / count).toFixed(1);
-  const shallow = eqs.filter(e => e.depth < 10).length;
-  const depthNote = shallow > count * 0.5
-    ? "Depremlerin büyük çoğunluğu 10 km'den sığ olup yüzey kırıklarıyla ilişkili olabilir."
-    : "Ortalama odak derinliği " + avgDepth + " km olup bölgesel kabuk dinamikleriyle uyumludur.";
+  const shallow  = eqs.filter(e => e.depth < 10).length;
+  const mid      = eqs.filter(e => e.depth >= 10 && e.depth < 35).length;
 
+  const depthNote = shallow > count * 0.6
+    ? "Odak derinlikleri büyük ölçüde 10 km'nin altında olup sığ kabuk kırıklarının aktif olduğuna işaret etmektedir."
+    : mid > count * 0.6
+    ? "Ortalama odak derinliği " + avgDepth + " km; orta-kabuk kaynaklı tipik tektonik aktivite örüntüsüyle örtüşmektedir."
+    : "Odaklar " + avgDepth + " km ortalama derinlikte; hem sığ hem de orta derinlikli kaynaklardan beslendiği görülmektedir.";
+
+  const m3plus  = eqs.filter(e => e.mag >= 3).length;
+  const m4plus  = eqs.filter(e => e.mag >= 4).length;
+  const magNote = m4plus > 0
+    ? "Bu süreçte " + m4plus + " adet M4.0 üzeri olay öne çıkmaktadır."
+    : m3plus > 0
+    ? count + " olayın " + m3plus + " adedi M3.0 eşiğini aşmıştır."
+    : "Kaydedilen olayların tamamı M3.0 altında seyretmiştir.";
+
+  if (ctx) {
+    const fayNote  = city + ", " + ctx.fay + " konumundadır.";
+    const tarihNot = ctx.not + ".";
+    const durum    = count >= 15
+      ? "Son 3 günde " + count + " olay ile bölgede belirgin bir sismik hareketlilik gözlemlenmektedir. " + magNote
+      : count >= 5
+      ? "Son 3 günde " + count + " sismik olay kayıt altına alınmıştır. " + magNote
+      : "Son 3 günde " + count + " olay ile aktivite görece sınırlı kalmaktadır. " + magNote;
+    return fayNote + " " + durum + " " + depthNote + " " + tarihNot;
+  }
+
+  // ctx yoksa genel metin
   const intensity = count >= 15 ? "yüksek" : count >= 5 ? "orta" : "düşük";
-  const riskNote = risk === 'high'
-    ? "Bölge aktif fay hatları üzerinde konumlanmakta olup yakın dönemde daha büyük bir olay potansiyeli taşımaktadır."
-    : risk === 'mid'
-    ? "Bölgede orta düzeyde sismik potansiyel gözlemlenmektedir; aktivite takip edilmelidir."
-    : "Mevcut aktivite düşük seviyede seyretmekte, bölge görece sakin bir dönem geçirmektedir.";
-
-  return city + " ilinde son 7 günde " + count + " sismik olay kaydedilmiş olup aktivite yoğunluğu " + intensity + " düzeydedir. En büyük deprem M" + maxM.toFixed(1) + " ile ölçülmüştür. " + depthNote + " " + riskNote;
+  return city + " ilinde son 3 günde " + count + " sismik olay kaydedilmiş olup aktivite yoğunluğu " + intensity + " düzeydedir. En büyük deprem M" + maxM.toFixed(1) + " ile ölçülmüştür. " + depthNote;
 }
 
 // ── BÖLGE KARTLARINI OLUŞTUR ──────────────────────────────────────────────
