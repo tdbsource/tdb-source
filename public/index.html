@@ -713,7 +713,7 @@ async function openPanel(cityId, cityName) {
         </div>`).join('')
     : '<div style="font-size:11px;color:var(--text3);padding:10px 0;font-family:\'JetBrains Mono\',monospace">Bu hafta kayıtlı hareket yok.</div>';
 
-  // ── TAHMİN YÜZDELERİ — tamamen istatistiksel, Gemini'siz ──────────────
+  // ── TAHMİN YÜZDELERİ — tamamen istatistiksel ──────────────
   // Gutenberg-Richter yasasına dayalı basit olasılık modeli
   const weekCount = eqs.length;
   const maxM = eqs.length ? Math.max(...eqs.map(e => e.mag)) : 0;
@@ -740,8 +740,8 @@ async function openPanel(cityId, cityName) {
   rp.textContent = '● ' + label;
   rp.className = 'risk-pill ' + risk;
 
-  // ── GEMİNİ — sadece metin analizi, sadece il tıklandığında ───────────────
-  // Yüzdeler ve risk zaten hesaplandı, Gemini sadece açıklayıcı metin üretir
+  // ──— sadece metin analizi, sadece il tıklandığında ───────────────
+  // Yüzdeler ve risk zaten hesaplandı, sadece açıklayıcı metin üretir
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
 
   const eqData = eqs.slice(0, 10).map(e => ({
@@ -764,12 +764,12 @@ async function openPanel(cityId, cityName) {
       throw new Error(data.error || 'boş yanıt');
     }
   } catch(e) {
-    // Gemini başarısız → istatistiksel metin üret (tamamen Gemini'siz)
+    // başarısız → istatistiksel metin üret (tamamen Source)
     document.getElementById('aiTxt').textContent = buildLocalAnalysis(cityName, eqs, risk, maxM, weekCount);
   }
 }
 
-// ── YEREL ANALİZ (Gemini olmadan) ─────────────────────────────────────────
+// ── YEREL ANALİZ (TRC) ─────────────────────────────────────────
 function buildLocalAnalysis(city, eqs, risk, maxM, count) {
   if (count === 0)
     return city + " ilinde son 7 günde kayıtlı sismik hareket bulunmamaktadır. Bölge şu an sismik olarak sakin görünmektedir.";
