@@ -79,7 +79,7 @@
   <input type="text" id="title" placeholder="BAŞLIK" maxlength="64">
 
   <label>Mesaj</label>
-  <textarea id="msg" placeholder="Bildirim içeriği" maxlength="200"></textarea>
+  <textarea id="msg" placeholder="Bildirim İçeriği" maxlength="200"></textarea>
 
   <div class="preview">
     <div class="preview-label">Önizleme</div>
@@ -115,7 +115,7 @@
     res.style.display = 'none';
 
     try {
-      const r = await fetch('/api/notify', {
+      const r = await fetch('https://tdb-source.vercel.app/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: pass, title, message: msg })
