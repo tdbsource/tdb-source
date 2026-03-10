@@ -1,6 +1,4 @@
 export default async function handler(req, res) {
-
-export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -15,14 +13,13 @@ export default async function handler(req, res) {
   const { password, title, message } = body || {};
 
   const adminPass = process.env.ADMIN_PASSWORD;
-  if (!adminPass) return res.status(500).json({ error: 'ADMIN_PASSWORD tanımlı değil' });
+  if (!adminPass) return res.status(500).json({ error: 'Yapılandırma hatası' });
   if (password !== adminPass) return res.status(401).json({ error: 'Yetkisiz erişim' });
-
   if (!title || !message) return res.status(400).json({ error: 'Başlık ve mesaj zorunlu' });
 
   const apiKey = process.env.ONESIGNAL_API_KEY;
   const appId  = process.env.ONESIGNAL_APP_ID;
-  if (!apiKey || !appId) return res.status(500).json({ error: 'OneSignal ayarları eksik' });
+  if (!apiKey || !appId) return res.status(500).json({ error: 'Yapılandırma hatası' });
 
   try {
     const r = await fetch('https://api.onesignal.com/notifications', {
@@ -42,10 +39,7 @@ export default async function handler(req, res) {
     });
 
     const data = await r.json();
-
-    if (data.errors) {
-      return res.status(400).json({ error: data.errors });
-    }
+    if (data.errors) return res.status(400).json({ error: data.errors });
 
     return res.status(200).json({
       success: true,
@@ -54,6 +48,6 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    return res.status(500).json({ error: 'OneSignal bağlantı hatası', detail: err.message });
+    return res.status(500).json({ error: 'Bağlantı hatası' });
   }
 }
