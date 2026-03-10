@@ -141,6 +141,88 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .pred-note{margin-top:16px;padding:11px 13px;background:rgba(0,0,0,.04);border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);line-height:1.65}
 .tip{position:fixed;background:rgba(28,32,48,.93);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);color:#fff;padding:5px 11px;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:11px;pointer-events:none;opacity:0;transition:opacity .1s;white-space:nowrap;z-index:9999}
 .tip.on{opacity:1}
+
+/* ── TABLET ─────────────────────────────────────────────────── */
+@media(max-width:1024px){
+  .panel{width:300px}
+  .regions{max-width:100%;max-height:100%}
+}
+
+/* ── MOBİL ──────────────────────────────────────────────────── */
+@media(max-width:768px){
+  /* HTML/body scroll aç */
+  html,body{overflow:auto;height:auto}
+  .app{height:auto;min-height:100vh}
+  .body{flex-direction:column;overflow:visible;height:auto}
+
+  /* Header — sadeleştir */
+  .header{padding:0 14px;height:50px;gap:8px}
+  .logo-name{font-size:17px}
+  .logo-gen{display:none}
+  .h-stats{gap:2px}
+  .hstat{padding:4px 8px}
+  .hstat-lbl{font-size:7px}
+  .hstat-val{font-size:11px}
+  .h-div{height:18px}
+  .hdrop{min-width:220px;right:-10px}
+
+  /* Veri kaynağı hstat'ı gizle */
+  .hstat:last-of-type{display:none}
+
+  /* Map area — scroll edilebilir liste */
+  .map-area{padding:10px 10px;height:auto;min-height:auto;overflow:visible;background:var(--bg)}
+  .map-area::before{display:none}
+
+  /* Bölge kartları — tek sütun, kompakt */
+  .regions{display:flex;flex-direction:column;gap:8px;width:100%;height:auto;max-width:100%;max-height:none}
+  .region-card{border-radius:10px;padding:0;overflow:visible}
+  .region-title{border-radius:10px 10px 0 0;font-size:8px;padding:6px 10px;position:static;top:auto}
+  .prov-list{flex-direction:row;flex-wrap:wrap;gap:4px;padding:8px}
+  .prov-pill{min-height:28px;padding:4px 9px;border-radius:14px;flex:0 0 auto}
+  .prov-name{font-size:11px}
+  .rdot{width:6px;height:6px}
+
+  /* Panel — alttan açılan full-screen drawer */
+  .panel{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    width:100%;
+    height:88vh;
+    border-left:none;
+    border-top:1px solid var(--border2);
+    border-radius:18px 18px 0 0;
+    transform:translateY(100%);
+    transition:transform .38s cubic-bezier(.4,0,.2,1);
+    z-index:200;
+    box-shadow:0 -8px 32px rgba(0,0,0,.15)
+  }
+  .panel.open{transform:translateY(0)}
+
+  /* Panel içi drag handle */
+  .panel::before{
+    content:'';
+    display:block;
+    width:36px;height:4px;
+    background:rgba(0,0,0,.15);
+    border-radius:2px;
+    margin:10px auto 0;
+    flex-shrink:0
+  }
+  .p-head{padding:14px 16px 12px}
+  .p-city{font-size:20px}
+  .tabs{padding:0 16px}
+  .tcont{padding:14px 16px}
+
+  /* Overlay — panel açıkken arkayı karart */
+  .mob-overlay{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.35);
+    z-index:199;
+    backdrop-filter:blur(2px)
+  }
+  .mob-overlay.on{display:block}
+}
 </style>
 </head>
 <body>
@@ -233,6 +315,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 </div>
 </div>
 <div class="tip" id="tip"></div>
+<div class="mob-overlay" id="mobOverlay"></div>
 
 <script>
 // ── BÖLGELER ──────────────────────────────────────────────────────────────
@@ -545,9 +628,9 @@ function updateRiskDots() {
 function getRiskFromEqs(eqs) {
   if (!eqs.length) return { risk:'low', label:'Düşük Aktivite' };
   const maxMag = Math.max(...eqs.map(e => e.mag));
-  if (maxMag >= 4 || eqs.length >= 10) return { risk:'high', label:'Riskli Olabilecek Konum' };
-  if (maxMag >= 3 || eqs.length >= 5)  return { risk:'mid',  label:'Orta Risk' };
-  return { risk:'low', label:'Şimdilik Düşük Risk' };
+  if (maxMag >= 4 || eqs.length >= 10) return { risk:'high', label:'Yüksek Risk Bölgesi' };
+  if (maxMag >= 3 || eqs.length >= 5)  return { risk:'mid',  label:'Orta Risk Bölgesi' };
+  return { risk:'low', label:'Düşük Risk Bölgesi' };
 }
 
 function getDailyBars(eqs) {
@@ -571,6 +654,7 @@ async function openPanel(cityId, cityName) {
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
   document.getElementById('panel').classList.add('open');
+  document.getElementById('mobOverlay').classList.add('on');
 
   // Reset tabs
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -719,8 +803,15 @@ document.addEventListener('click', e => {
 });
 
 // ── PANEL KAPAT ───────────────────────────────────────────────────────────
+document.getElementById('mobOverlay').addEventListener('click', () => {
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('mobOverlay').classList.remove('on');
+  document.getElementById('mobOverlay').classList.remove('on');
+  activePanelId = null; activePanelName = null;
+});
 document.getElementById('pClose').addEventListener('click', () => {
   document.getElementById('panel').classList.remove('open');
+  document.getElementById('mobOverlay').classList.remove('on');
   document.querySelectorAll('.prov-pill').forEach(p => p.classList.remove('active'));
 });
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function() {
