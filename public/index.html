@@ -34,9 +34,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 /* HEADER */
 .header{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:56px;background:rgba(220,224,230,0.97);border-bottom:1px solid var(--border2);flex-shrink:0;position:relative;z-index:50;backdrop-filter:blur(20px)}
-.logo{display:flex;align-items:baseline;gap:10px}
+.logo{display:flex;flex-direction:column;align-items:flex-start;gap:0px}
 .logo-name{font-size:21px;font-weight:800;letter-spacing:-.025em;color:var(--text)}
-.logo-gen{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;border:1px solid var(--border2);padding:2px 7px;border-radius:4px}
+.logo-gen{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(90deg,#7c3aed,#1a1a2e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-top:1px}
+.tdb-btn{display:inline-flex;align-items:center;gap:6px;margin-left:14px;padding:5px 12px;background:#000;color:#fff;border-radius:20px;border:1.5px solid rgba(255,255,255,0.15);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.06em;text-decoration:none;cursor:pointer;animation:tdb-pulse 2.4s ease-in-out infinite;flex-shrink:0}
+.tdb-btn:hover{background:#111;border-color:rgba(255,255,255,.35)}
+@keyframes tdb-pulse{0%,100%{opacity:1}50%{opacity:.55}}
 .h-stats{display:flex;align-items:center;gap:4px}
 .hstat{display:flex;flex-direction:column;align-items:flex-end;padding:5px 13px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .18s ease;position:relative}
 .hstat:hover,.hstat.active{background:rgba(255,255,255,.55);border-color:var(--border2);box-shadow:var(--shadow-sm)}
@@ -166,7 +169,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   /* Header */
   .header{padding:0 10px;height:40px;flex-shrink:0}
   .logo-name{font-size:14px}
-  .logo-gen{display:none}
+  /* .logo-gen mobilde görünür kalır */
   .h-stats{gap:0}
   .hstat{padding:3px 6px}
   .hstat-lbl{font-size:6px}
@@ -263,9 +266,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 </div>
 
 <div class="header">
-  <div class="logo">
-    <span class="logo-name">TDB Source<sup style="font-size:9px;font-weight:600;letter-spacing:0;vertical-align:super;margin-left:1px">™</sup></span>
-    <span class="logo-gen">Generation 8</span>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">
+      <span class="logo-name">TDB Source<sup style="font-size:9px;font-weight:600;letter-spacing:0;vertical-align:super;margin-left:1px">™</sup></span>
+      <span class="logo-gen">Generation 8</span>
+    </div>
+    <a class="tdb-btn" href="https://x.com/deprembildirimi" target="_blank" rel="noopener">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.261 5.632L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+      #WeAreTDB
+    </a>
   </div>
   <div class="h-stats">
     <div class="hstat" id="hs24" onclick="toggleDrop('drop24',this)">
@@ -745,9 +754,9 @@ function updateRiskDots() {
 function getRiskFromEqs(eqs) {
   if (!eqs.length) return { risk:'low', label:'Düşük Aktivite' };
   const maxMag = Math.max(...eqs.map(e => e.mag));
-  if (maxMag >= 4 || eqs.length >= 10) return { risk:'high', label:'Potansiyel Risk Bölgesi' };
-  if (maxMag >= 3 || eqs.length >= 5)  return { risk:'mid',  label:'Hareketli Bölge' };
-  return { risk:'low', label:'Düşük Riskli Süreç' };
+  if (maxMag >= 4 || eqs.length >= 10) return { risk:'high', label:'Yüksek Risk Bölgesi' };
+  if (maxMag >= 3 || eqs.length >= 5)  return { risk:'mid',  label:'Orta Risk Bölgesi' };
+  return { risk:'low', label:'Düşük Risk Bölgesi' };
 }
 
 function getDailyBars(eqs) {
