@@ -27,7 +27,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .t-dot{width:5px;height:5px;border-radius:50%;background:var(--red2);animation:blink 1.4s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 .t-wrap{overflow:hidden;flex:1}
-.t-track{display:flex;animation:scroll 50s linear infinite;white-space:nowrap}
+.t-track{display:flex;animation:scroll 30s linear infinite;white-space:nowrap}
 .t-item{display:inline-flex;align-items:center;gap:9px;padding:0 22px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);border-right:1px solid var(--border)}
 .t-mag{font-weight:500}.t-mag.h{color:var(--red2)}.t-mag.m{color:var(--orange)}.t-mag.l{color:var(--text3)}
 @keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
@@ -215,13 +215,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   .prov-list::-webkit-scrollbar{width:2px}
   .prov-list::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1)}
 
-  /* İl hapı */
+  /* İl hapı — büyütüldü */
   .prov-pill{
-    padding:2px 5px;border-radius:8px;
-    flex:0 0 auto;gap:2px;min-height:0
+    padding:4px 7px;border-radius:9px;
+    flex:1 1 auto;gap:3px;min-height:0;
+    justify-content:flex-start
   }
-  .prov-name{font-size:8.5px}
-  .rdot{width:4px;height:4px}
+  .prov-name{font-size:10px}
+  .rdot{width:5px;height:5px}
 
   /* Panel — alttan drawer */
   .panel{
@@ -363,44 +364,43 @@ const REGIONS = [
     {id:'usak',n:'Uşak',r:''},{id:'afyon',n:'Afyonkarahisar',r:''}
   ]},
   { id:'karadeniz', title:'Karadeniz', provs:[
-    {id:'samsun',n:'Samsun',r:'mid'},{id:'duzce',n:'Düzce',r:'mid'},
-    {id:'bolu',n:'Bolu',r:''},{id:'zonguldak',n:'Zonguldak',r:''},
-    {id:'bartin',n:'Bartın',r:''},{id:'karabuk',n:'Karabük',r:''},
-    {id:'kastamonu',n:'Kastamonu',r:''},{id:'sinop',n:'Sinop',r:''},
-    {id:'ordu',n:'Ordu',r:''},{id:'giresun',n:'Giresun',r:''},
-    {id:'trabzon',n:'Trabzon',r:''},{id:'rize',n:'Rize',r:''},
-    {id:'artvin',n:'Artvin',r:''}
+    {id:'duzce',n:'Düzce',r:'mid'},{id:'bolu',n:'Bolu',r:''},
+    {id:'zonguldak',n:'Zonguldak',r:''},{id:'bartin',n:'Bartın',r:''},
+    {id:'karabuk',n:'Karabük',r:''},{id:'kastamonu',n:'Kastamonu',r:''},
+    {id:'sinop',n:'Sinop',r:''},{id:'samsun',n:'Samsun',r:'mid'},
+    {id:'corum',n:'Çorum',r:''},{id:'amasya',n:'Amasya',r:''},
+    {id:'tokat',n:'Tokat',r:''},{id:'ordu',n:'Ordu',r:''},
+    {id:'giresun',n:'Giresun',r:''},{id:'trabzon',n:'Trabzon',r:''},
+    {id:'gumushane',n:'Gümüşhane',r:''},{id:'rize',n:'Rize',r:''},
+    {id:'artvin',n:'Artvin',r:''},{id:'bayburt',n:'Bayburt',r:''}
   ]},
   { id:'ic_anadolu', title:'İç Anadolu', provs:[
-    {id:'ankara',n:'Ankara',r:''},{id:'konya',n:'Konya',r:''},
-    {id:'kayseri',n:'Kayseri',r:''},{id:'eskisehir',n:'Eskişehir',r:''},
-    {id:'sivas',n:'Sivas',r:''},{id:'yozgat',n:'Yozgat',r:''},
-    {id:'aksaray',n:'Aksaray',r:''},{id:'nevsehir',n:'Nevşehir',r:''},
-    {id:'kirsehir',n:'Kırşehir',r:''},{id:'kirikkale',n:'Kırıkkale',r:''},
-    {id:'cankiri',n:'Çankırı',r:''},{id:'karaman',n:'Karaman',r:''}
+    {id:'ankara',n:'Ankara',r:''},{id:'eskisehir',n:'Eskişehir',r:''},
+    {id:'cankiri',n:'Çankırı',r:''},{id:'kirikkale',n:'Kırıkkale',r:''},
+    {id:'kirsehir',n:'Kırşehir',r:''},{id:'yozgat',n:'Yozgat',r:''},
+    {id:'nevsehir',n:'Nevşehir',r:''},{id:'aksaray',n:'Aksaray',r:''},
+    {id:'konya',n:'Konya',r:''},{id:'karaman',n:'Karaman',r:''},
+    {id:'kayseri',n:'Kayseri',r:''},{id:'sivas',n:'Sivas',r:''}
   ]},
   { id:'akdeniz', title:'Akdeniz', provs:[
-    {id:'hatay',n:'Hatay',r:'high'},{id:'adana',n:'Adana',r:''},
-    {id:'mersin',n:'Mersin',r:''},{id:'antalya',n:'Antalya',r:''},
-    {id:'isparta',n:'Isparta',r:''},{id:'burdur',n:'Burdur',r:''},
-    {id:'osmaniye',n:'Osmaniye',r:''},{id:'nigde',n:'Niğde',r:''}
+    {id:'antalya',n:'Antalya',r:''},{id:'isparta',n:'Isparta',r:''},
+    {id:'burdur',n:'Burdur',r:''},{id:'mersin',n:'Mersin',r:''},
+    {id:'adana',n:'Adana',r:''},{id:'osmaniye',n:'Osmaniye',r:''},
+    {id:'hatay',n:'Hatay',r:'high'},{id:'nigde',n:'Niğde',r:''}
   ]},
   { id:'dogu', title:'Doğu/Güneydoğu', provs:[
-    {id:'kahramanmaras',n:'K.Maraş',r:'high'},{id:'elazig',n:'Elazığ',r:'mid'},
-    {id:'malatya',n:'Malatya',r:'mid'},{id:'erzincan',n:'Erzincan',r:'mid'},
-    {id:'tunceli',n:'Tunceli',r:'mid'},{id:'gaziantep',n:'Gaziantep',r:'high'},
-    {id:'adiyaman',n:'Adıyaman',r:'mid'},{id:'diyarbakir',n:'Diyarbakır',r:'mid'},
+    {id:'malatya',n:'Malatya',r:'mid'},{id:'elazig',n:'Elazığ',r:'mid'},
+    {id:'tunceli',n:'Tunceli',r:'mid'},{id:'erzincan',n:'Erzincan',r:'mid'},
     {id:'bingol',n:'Bingöl',r:'mid'},{id:'erzurum',n:'Erzurum',r:'mid'},
-    {id:'van',n:'Van',r:'mid'},{id:'mus',n:'Muş',r:''},
     {id:'agri',n:'Ağrı',r:''},{id:'kars',n:'Kars',r:''},
     {id:'ardahan',n:'Ardahan',r:''},{id:'igdir',n:'Iğdır',r:''},
-    {id:'bitlis',n:'Bitlis',r:''},{id:'hakkari',n:'Hakkari',r:''},
-    {id:'sanliurfa',n:'Şanlıurfa',r:''},{id:'mardin',n:'Mardin',r:''},
-    {id:'batman',n:'Batman',r:''},{id:'siirt',n:'Siirt',r:''},
-    {id:'sirnak',n:'Şırnak',r:''},{id:'kilis',n:'Kilis',r:''},
-    {id:'corum',n:'Çorum',r:''},{id:'amasya',n:'Amasya',r:''},
-    {id:'tokat',n:'Tokat',r:''},{id:'gumushane',n:'Gümüşhane',r:''},
-    {id:'bayburt',n:'Bayburt',r:''}
+    {id:'van',n:'Van',r:'mid'},{id:'bitlis',n:'Bitlis',r:''},
+    {id:'mus',n:'Muş',r:''},{id:'hakkari',n:'Hakkari',r:''},
+    {id:'kahramanmaras',n:'K.Maraş',r:'high'},{id:'adiyaman',n:'Adıyaman',r:'mid'},
+    {id:'gaziantep',n:'Gaziantep',r:'high'},{id:'kilis',n:'Kilis',r:''},
+    {id:'sanliurfa',n:'Şanlıurfa',r:''},{id:'diyarbakir',n:'Diyarbakır',r:'mid'},
+    {id:'mardin',n:'Mardin',r:''},{id:'batman',n:'Batman',r:''},
+    {id:'siirt',n:'Siirt',r:''},{id:'sirnak',n:'Şırnak',r:''}
   ]},
 ];
 
