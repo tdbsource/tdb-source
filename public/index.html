@@ -742,16 +742,19 @@ function buildDropdowns() {
 }
 
 // ── YENİ DEPREM FLASH ─────────────────────────────────────────────────────
-const seenIds = new Set(); // Kalıcı görülmüş ID listesi
+const seenIds = new Set();
 
 function flashNewQuakes(prevIds) {
-  const newEqs = allEqs.filter(e => e.id && !seenIds.has(e.id) && prevIds.has(e.id) === false);
-  // Tüm mevcut ID'leri seenIds'e ekle
+  // İlk yüklemede mevcut tüm ID'leri seenIds'e al — bunlar için flash yok
+  if (seenIds.size === 0) {
+    allEqs.forEach(e => e.id && seenIds.add(e.id));
+    return;
+  }
+  const newEqs = allEqs.filter(e => e.id && !seenIds.has(e.id));
   allEqs.forEach(e => e.id && seenIds.add(e.id));
   if (!newEqs.length) return;
 
   const affectedProvs = new Set(newEqs.map(e => normProv(e.province)).filter(Boolean));
-
   affectedProvs.forEach(prov => {
     document.querySelectorAll('.prov-pill').forEach(pill => {
       const pid = pill.dataset.id;
