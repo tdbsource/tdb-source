@@ -873,49 +873,70 @@ async function openPanel(cityId, cityName) {
   }
 }
 
-// ── YEREL ANALİZ (Gemini olmadan) — il bağlamı ile zenginleştirilmiş ──────
 function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count) {
   const ctx = IL_CTX[cityId];
 
-  if (count === 0) {
-    const sakin = ctx
-      ? city + ", " + ctx.fay + " konumundadır. Son 3 günde kayıtlı sismik hareket bulunmamaktadır; ancak bölgenin tektonik yapısı sürekli izleme gerektirmektedir."
-      : city + " ilinde son günlerde kayıtlı sismik hareket bulunmamaktadır. Bölge şu an sismik olarak sakin görünmektedir.";
-    return sakin;
-  }
-
-  const avgDepth = (eqs.reduce((s,e) => s + e.depth, 0) / count).toFixed(1);
+  // Yardımcı hesaplar
+  const avgDepth = count > 0 ? (eqs.reduce((s,e) => s + e.depth, 0) / count).toFixed(1) : 0;
   const shallow  = eqs.filter(e => e.depth < 10).length;
-  const mid      = eqs.filter(e => e.depth >= 10 && e.depth < 35).length;
+  const deep     = eqs.filter(e => e.depth >= 35).length;
+  const m4plus   = eqs.filter(e => e.mag >= 4).length;
+  const m3plus   = eqs.filter(e => e.mag >= 3).length;
+  const m2plus   = eqs.filter(e => e.mag >= 2).length;
 
-  const depthNote = shallow > count * 0.6
-    ? "Odak derinlikleri büyük ölçüde 10 km'nin altında olup sığ kabuk kırıklarının aktif olduğuna işaret etmektedir."
-    : mid > count * 0.6
-    ? "Ortalama odak derinliği " + avgDepth + " km; orta-kabuk kaynaklı tipik tektonik aktivite örüntüsüyle örtüşmektedir."
-    : "Odaklar " + avgDepth + " km ortalama derinlikte; hem sığ hem de orta derinlikli kaynaklardan beslendiği görülmektedir.";
-
-  const m3plus  = eqs.filter(e => e.mag >= 3).length;
-  const m4plus  = eqs.filter(e => e.mag >= 4).length;
-  const magNote = m4plus > 0
-    ? "Bu süreçte " + m4plus + " adet M4.0 üzeri olay öne çıkmaktadır."
-    : m3plus > 0
-    ? count + " olayın " + m3plus + " adedi M3.0 eşiğini aşmıştır."
-    : "Kaydedilen olayların tamamı M3.0 altında seyretmiştir.";
-
-  if (ctx) {
-    const fayNote  = city + ", " + ctx.fay + " konumundadır.";
-    const tarihNot = ctx.not + ".";
-    const durum    = count >= 15
-      ? "Son 3 günde " + count + " olay ile bölgede belirgin bir sismik hareketlilik gözlemlenmektedir. " + magNote
-      : count >= 5
-      ? "Son 3 günde " + count + " sismik olay kayıt altına alınmıştır. " + magNote
-      : "Son 3 günde " + count + " olay ile aktivite görece sınırlı kalmaktadır. " + magNote;
-    return fayNote + " " + durum + " " + depthNote + " " + tarihNot;
+  // Derinlik yorumu
+  function derinlikCumlesi() {
+    if (count === 0) return "";
+    if (shallow >= count * 0.6)
+      return "Odakların büyük bölümü 10 km'nin altında seyrediyor; bu, yüzey yakını kırıkların gerilim boşalttığına işaret ediyor.";
+    if (deep >= count * 0.4)
+      return avgDepth + " km ortalama derinlikle olaylar, derin kabuk hareketlerinden kaynaklanıyor olabilir.";
+    return "Ortalama odak derinliği " + avgDepth + " km; bölgedeki tipik tektonik örüntüyle uyumlu bir dağılım.";
   }
 
-  // ctx yoksa genel metin
-  const intensity = count >= 15 ? "yüksek" : count >= 5 ? "orta" : "düşük";
-  return city + " ilinde son 3 günde " + count + " sismik olay kaydedilmiş olup aktivite yoğunluğu " + intensity + " düzeydedir. En büyük deprem M" + maxM.toFixed(1) + " ile ölçülmüştür. " + depthNote;
+  // Büyüklük yorumu
+  function buyuklukCumlesi() {
+    if (m4plus >= 2) return m4plus + " olay M4.0 eşiğini geçti; bunlar bölge genelinde hissedilebilecek büyüklükte.";
+    if (m4plus === 1) return "Bu süreçteki en dikkat çekici olay M" + maxM.toFixed(1) + " ile ölçüldü.";
+    if (m3plus > 0) return m3plus + " olay M3.0 sınırını aştı; halkın bir kısmı tarafından hissedilmiş olabilir.";
+    if (m2plus > 0) return "Kaydedilen olaylar M2 ile M3 arasında yoğunlaşıyor; çoğu yalnızca aletsel olarak tespit edilebilir düzeyde.";
+    return "Kaydedilen sismik olaylar düşük büyüklük aralığında seyretti.";
+  }
+
+  // Aktivite yorumu — farklı ifadeler kullan
+  const aktiviteIfadeleri = {
+    yüksek: ["bölgede belirgin bir sismik hareketlilik göze çarpıyor", "sismik aktivite son günlerde yoğunluk kazandı", "kayıt sayısı dikkat çekici bir düzeye ulaştı"],
+    orta:   ["orta düzey bir sismik aktivite gözlemleniyor", "bölge ölçülü bir hareketlilik içinde", "aktivite normal sınırların biraz üzerinde seyrediyor"],
+    düşük:  ["aktivite görece sınırlı kaldı", "sismik tablo sakin bir görünüm sergiliyor", "kayıt sayısı beklenen düzeyin altında"]
+  };
+  function rastgeleIfade(liste) {
+    return liste[Math.floor(Date.now() / 60000) % liste.length];
+  }
+  const seviye = count >= 15 ? "yüksek" : count >= 5 ? "orta" : "düşük";
+  const aktivite = rastgeleIfade(aktiviteIfadeleri[seviye]);
+
+  // SAKİN DÖNEM
+  if (count === 0) {
+    if (!ctx) return city + " ilinde son 3 günde kayda değer bir sismik hareket tespit edilmedi. Bölge şu an görece sakin.";
+    const sakinler = [
+      city + ", " + ctx.fay + " konumunda yer alıyor. Son 3 günde kayıtlı bir hareket yok; ancak bölgenin tektonik geçmişi göz önünde bulundurulduğunda bu sessizlik kalıcı olmayabilir.",
+      ctx.not + ". Buna karşın son 3 günlük veri " + city + " için herhangi bir sismik hareket kaydetmedi; bölge şimdilik sakin.",
+      city + " şu an sismik olarak sessiz bir dönemden geçiyor. " + ctx.fay + " konumundaki bu bölge tarihsel olarak aktif olmakla birlikte son 3 günde ölçülebilir bir hareket gözlemlenmedi."
+    ];
+    return sakinler[Math.floor(Date.now() / 3600000) % sakinler.length];
+  }
+
+  // AKTİF DÖNEM — ctx var
+  if (ctx) {
+    const cumle1 = city + ", " + ctx.fay + " konumunda.";
+    const cumle2 = "Son 3 günde " + count + " olay kaydedildi; " + aktivite + ". " + buyuklukCumlesi();
+    const cumle3 = derinlikCumlesi() + " " + ctx.not + ".";
+    return cumle1 + " " + cumle2 + " " + cumle3;
+  }
+
+  // ctx yok — genel ama akıcı
+  return city + " için son 3 günde " + count + " sismik olay kayıt altına alındı; " + aktivite + ". " +
+    buyuklukCumlesi() + " " + derinlikCumlesi();
 }
 
 // ── BÖLGE KARTLARINI OLUŞTUR ──────────────────────────────────────────────
