@@ -88,7 +88,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .region-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.8)}
 .region-card::-webkit-scrollbar{width:3px}
 .region-card::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
-.region-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text);padding:11px 10px;text-align:center;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border:1.5px solid #111;border-radius:14px 14px 0 0;position:sticky;top:0;z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;margin:-10px -10px 8px -10px;border-radius:14px 14px 0 0;position:sticky;top:-10px;z-index:2}
+.region-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text);padding:11px 10px;text-align:center;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border:none;border-bottom:1px solid rgba(0,0,0,0.1);border-radius:14px 14px 0 0;position:sticky;top:0;z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;margin:-10px -10px 8px -10px;border-radius:14px 14px 0 0;position:sticky;top:-10px;z-index:2}
 .prov-list{display:flex;flex-wrap:wrap;gap:3px;padding:6px}
 .prov-section-header{flex-basis:100%;}
 .prov-pill.new-quake{animation:newquake 0.6s ease-in-out infinite}
@@ -223,7 +223,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   .region-title{
     font-size:8.5px;padding:8px 8px;
     border-radius:7px 7px 0 0;
-    border:1.5px solid #111;
+    border:none;border-bottom:1px solid rgba(0,0,0,0.1);
     position:sticky;top:0;z-index:1;
     margin:0;flex-shrink:0
   }
