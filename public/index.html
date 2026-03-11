@@ -43,6 +43,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .logo{display:flex;flex-direction:column;align-items:flex-start;gap:0px}
 .logo-name{font-size:21px;font-weight:800;letter-spacing:-.025em;color:var(--text)}
 .logo-gen{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(90deg,#7c3aed,#1a1a2e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-top:1px}
+.hissettim-btn{width:100%;padding:11px;margin-top:10px;background:linear-gradient(135deg,#e03535,#b91c1c);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;font-family:inherit}
+.hissettim-btn:hover{opacity:.88}
+.hissettim-btn:disabled{opacity:.45;cursor:not-allowed}
+.hissettim-btn.sent{background:linear-gradient(135deg,#1a9a52,#15803d)}
+.hissettim-info{font-size:11px;color:var(--text3);text-align:center;margin-top:6px;min-height:16px;font-family:'JetBrains Mono',monospace}
 .tdb-btn{display:inline-flex;align-items:center;gap:6px;margin-left:14px;padding:5px 12px;background:#000;color:#fff;border-radius:20px;border:1.5px solid rgba(255,255,255,0.15);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.06em;text-decoration:none;cursor:pointer;animation:tdb-pulse 2.4s ease-in-out infinite;flex-shrink:0}
 .tdb-btn:hover{background:#111;border-color:rgba(255,255,255,.35)}
 @keyframes tdb-pulse{0%,100%{opacity:1}50%{opacity:.55}}
@@ -318,6 +323,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="ai-tag"><div class="ai-ico">✦</div><span class="ai-tag-lbl">Source Gen 8 Analiz</span></div>
         <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
         <div class="risk-pill" id="rPill"></div>
+        <button class="hissettim-btn" id="hissettimBtn" onclick="hissettimBas()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Deprem Hissettim
+        </button>
+        <div class="hissettim-info" id="hissettimInfo"></div>
       </div>
     </div>
     <div class="tabs">
@@ -818,6 +828,58 @@ function getDailyBars(eqs) {
   return bars;
 }
 
+// ── DEPREMİ HİSSETTİM ─────────────────────────────────────────────────────
+let hissettimCooldown = false;
+let aktifIl = '';
+
+async function hissettimBas() {
+  if (hissettimCooldown || !aktifIl) return;
+  const btn  = document.getElementById('hissettimBtn');
+  const info = document.getElementById('hissettimInfo');
+
+  hissettimCooldown = true;
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Gönderiliyor...';
+
+  try {
+    const r = await fetch('https://tdb-source.vercel.app/api/hissettim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ il: aktifIl })
+    });
+    const d = await r.json();
+
+    if (d.status === 'notified') {
+      btn.classList.add('sent');
+      btn.innerHTML = '✓ Bildirim Gönderildi';
+      info.textContent = 'Yeterli kullanıcı bildirdi — tüm abonelere bildirim gitti.';
+    } else if (d.status === 'cooldown') {
+      info.textContent = 'Az önce bildirdin, biraz bekle.';
+      btn.disabled = false;
+      hissettimCooldown = false;
+      return;
+    } else {
+      btn.classList.add('sent');
+      btn.innerHTML = '✓ Bildirildi';
+      info.textContent = d.count + ' kullanıcı bildirdi. Eşiğe ulaşınca bildirim gidecek.';
+    }
+  } catch(e) {
+    info.textContent = 'Bağlantı hatası, tekrar dene.';
+    btn.disabled = false;
+    hissettimCooldown = false;
+    return;
+  }
+
+  // 30 sn sonra butonu sıfırla
+  setTimeout(() => {
+    hissettimCooldown = false;
+    btn.disabled = false;
+    btn.classList.remove('sent');
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Deprem Hissettim';
+    info.textContent = '';
+  }, 30000);
+}
+
 // ── PANEL AÇ ──────────────────────────────────────────────────────────────
 const DAYS = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 
@@ -825,9 +887,15 @@ async function openPanel(cityId, cityName) {
   document.querySelectorAll('.prov-pill').forEach(p => p.classList.remove('active'));
   document.querySelectorAll(`.prov-pill[data-id="${cityId}"]`).forEach(p => p.classList.add('active'));
 
+  aktifIl = cityName;
   document.getElementById('pCity').textContent = cityName;
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
+  document.getElementById('hissettimBtn').classList.remove('sent');
+  document.getElementById('hissettimBtn').disabled = false;
+  document.getElementById('hissettimBtn').innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Deprem Hissettim';
+  document.getElementById('hissettimInfo').textContent = '';
+  hissettimCooldown = false;
   document.getElementById('panel').classList.add('open');
   document.getElementById('mobOverlay').classList.add('on');
 
