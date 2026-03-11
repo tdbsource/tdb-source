@@ -755,13 +755,11 @@ function getEqsForCity(cityId) {
   const provName = normProv(PROV_MAP[cityId] || cityId);
 
   return allEqs.filter(e => {
-    // 1) Province alanı varsa — normalize edip eşleştir (EMSC + AFAD)
     if (e.province && e.province.trim() !== '') {
       const p = normProv(e.province);
       if (p === provName) return true;
       if (p.includes(provName) || provName.includes(p)) return true;
     }
-    // 2) Province boşsa veya eşleşmediyse — koordinat çemberi
     if (coord) {
       const dlat = e.lat - coord.lat;
       const dlon = e.lon - coord.lon;
@@ -769,6 +767,23 @@ function getEqsForCity(cityId) {
     }
     return false;
   }).sort((a,b) => b.ts - a.ts);
+}
+
+// Depremlerden kaçı doğrudan o ile ait, kaçı civar?
+function getEqStats(cityId, eqs) {
+  const provName = normProv(PROV_MAP[cityId] || cityId);
+  let direkt = 0, civar = 0;
+  eqs.forEach(e => {
+    if (e.province && e.province.trim() !== '') {
+      const p = normProv(e.province);
+      if (p === provName || p.includes(provName) || provName.includes(p)) {
+        direkt++;
+        return;
+      }
+    }
+    civar++;
+  });
+  return { direkt, civar };
 }
 
 // ── VERİ YÜKLENDIKTEN SONRA RISK NOKTALARINI GUNCELLE ──────────────────
@@ -897,11 +912,11 @@ async function openPanel(cityId, cityName) {
     }
   } catch(e) {
     // Gemini başarısız → istatistiksel metin üret (tamamen Gemini'siz)
-    document.getElementById('aiTxt').textContent = buildLocalAnalysis(cityId, cityName, eqs, risk, maxM, weekCount);
+    document.getElementById('aiTxt').textContent = buildLocalAnalysis(cityId, cityName, eqs, risk, maxM, weekCount, getEqStats(cityId, eqs));
   }
 }
 
-function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count) {
+function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
   const ctx = IL_CTX[cityId];
 
   // Gerçek zamanlı veri hesapları
@@ -990,29 +1005,38 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count) {
   }
 
   // ── AKTİVİTE DURUMU ──────────────────────────────────────────────────────
+  const direkt = stats ? stats.direkt : count;
+  const civar  = stats ? stats.civar  : 0;
+  const civarNot = civar > 0
+    ? " (bunların " + direkt + " tanesi doğrudan " + city + "'e ait, " + civar + " tanesi ise yakın bölgeden)"
+    : "";
+  const civarKisa = civar > 0
+    ? " Bu hareketlerin bir kısmı çevre illerden kaynaklanıyor; ancak " + city + "'i etkileme potansiyeli taşıdığı için tabloya dahil edildi."
+    : "";
+
   function aktivite() {
     if (count >= 20)
       return sec([
-        "Son 3 günde " + count + " olayla bölge yoğun bir sismik aktivite içinde.",
-        city + "'de son 3 günde " + count + " sismik olay kaydedildi; bu, dikkat çekici bir yoğunluğa işaret ediyor.",
-        count + " olayla son 3 gün bölge için oldukça hareketli geçti."
+        "Son 3 günde bölgede" + civarNot + " toplam " + count + " olay kaydedildi; yoğun bir sismik aktivite söz konusu." + civarKisa,
+        city + " ve yakın çevresinde son 3 günde " + count + " sismik olay tespit edildi; bu, dikkat çekici bir yoğunluğa işaret ediyor." + civarKisa,
+        count + " olayla son 3 gün bölge için oldukça hareketli geçti." + civarKisa
       ]);
     if (count >= 10)
       return sec([
-        "Son 3 günde " + count + " olayla bölgede belirgin bir hareketlilik gözlemleniyor.",
-        city + " son 3 günde " + count + " sismik olay kaydetti; aktivite ortalamanın üzerinde seyrediyor.",
-        count + " kayıtla son 3 gün, bölge için normalin üzerinde bir tablo ortaya koyuyor."
+        "Son 3 günde " + city + " ve çevresinde " + count + " olay kaydedildi; aktivite ortalamanın üzerinde seyrediyor." + civarKisa,
+        city + " bölgesinde son 3 günde " + count + " sismik olay tespit edildi." + civarKisa,
+        count + " kayıtla son 3 gün, bölge için normalin üzerinde bir tablo ortaya koyuyor." + civarKisa
       ]);
     if (count >= 5)
       return sec([
-        "Son 3 günde " + count + " sismik olay kayıt altına alındı; aktivite orta düzeyde seyrediyor.",
-        city + " için son 3 günde " + count + " olay tespit edildi.",
-        count + " olayla son 3 gün, bölgede ölçülü bir sismik hareketliliğe işaret ediyor."
+        "Son 3 günde " + city + " ve yakın çevresinde " + count + " sismik olay kayıt altına alındı." + civarKisa,
+        city + " bölgesi için son 3 günde toplam " + count + " olay tespit edildi." + civarKisa,
+        count + " olayla son 3 gün, bölgede ölçülü bir sismik hareketliliğe işaret ediyor." + civarKisa
       ]);
     return sec([
-      "Son 3 günde " + count + " olay kaydedildi; aktivite görece sınırlı.",
-      city + " son 3 günde " + count + " olayla düşük düzeyde bir sismik hareketlilik gösterdi.",
-      count + " olayla son 3 gün, bölge için sakin sayılabilecek bir tablo sunuyor."
+      "Son 3 günde " + city + " ve yakın çevresinde " + count + " olay kaydedildi; aktivite görece sınırlı." + civarKisa,
+      city + " bölgesi son 3 günde " + count + " olayla düşük düzeyde bir hareketlilik gösterdi." + civarKisa,
+      count + " olayla son 3 gün, " + city + " için sakin sayılabilecek bir tablo sunuyor." + civarKisa
     ]);
   }
 
