@@ -674,6 +674,7 @@ async function fetchKandilli() {
 
     // Yeni deprem tespiti — önceki ID listesiyle karşılaştır
     const prevIds = new Set(allEqs.map(e => e.id).filter(Boolean));
+    const isFirstLoad = allEqs.length === 0;
 
     allEqs = events.map(e => ({
       lat: parseFloat(e.latitude),
@@ -691,7 +692,7 @@ async function fetchKandilli() {
     updateTicker();
     buildDropdowns();
     updateRiskDots();
-    flashNewQuakes(prevIds);
+    if (!isFirstLoad) flashNewQuakes(prevIds);
   } catch(e) {
     console.warn('AFAD bağlantı hatası, demo veri kullanılıyor:', e);
     loadDemoData();
@@ -741,12 +742,14 @@ function buildDropdowns() {
 }
 
 // ── YENİ DEPREM FLASH ─────────────────────────────────────────────────────
+const seenIds = new Set(); // Kalıcı görülmüş ID listesi
+
 function flashNewQuakes(prevIds) {
-  if (!prevIds || prevIds.size === 0) return; // İlk yükleme — flash yok
-  const newEqs = allEqs.filter(e => e.id && !prevIds.has(e.id));
+  const newEqs = allEqs.filter(e => e.id && !seenIds.has(e.id) && prevIds.has(e.id) === false);
+  // Tüm mevcut ID'leri seenIds'e ekle
+  allEqs.forEach(e => e.id && seenIds.add(e.id));
   if (!newEqs.length) return;
 
-  // Hangi iller etkilendi?
   const affectedProvs = new Set(newEqs.map(e => normProv(e.province)).filter(Boolean));
 
   affectedProvs.forEach(prov => {
@@ -905,6 +908,8 @@ async function openPanel(cityId, cityName) {
 
   aktifIl = cityName;
   document.getElementById('pCity').textContent = cityName;
+  // Veriyi anında güncelle — panel açılınca en güncel listeyi göster
+  await fetchKandilli();
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
   document.getElementById('hissettimBtn').classList.remove('sent');
