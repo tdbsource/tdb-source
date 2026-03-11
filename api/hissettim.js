@@ -1,7 +1,7 @@
-const THRESHOLD    = parseInt(process.env.HISSET_THRESHOLD || '5');
-const WINDOW_MS    = 10 * 1000;
-const COOLDOWN_MS  = 30 * 1000;
-const NOTIF_CD_MS  = 60 * 1000;
+const THRESHOLD   = parseInt(process.env.HISSET_THRESHOLD || '5');
+const WINDOW_MS   = 10 * 1000;
+const COOLDOWN_MS = 30 * 1000;
+const NOTIF_CD_MS = 60 * 1000;
 
 async function redis(cmd) {
   const url   = process.env.UPSTASH_REDIS_URL;
@@ -22,33 +22,34 @@ export default async function handler(req, res) {
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
 
-  const { il } = body || {};
+  const { il, subId } = body || {};
   if (!il) return res.status(400).json({ error: 'il eksik' });
 
-  const ip  = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
+  // Kayıtsız kullanıcıları reddet
+  if (!subId || subId.length < 10) {
+    return res.status(403).json({ error: 'Bildirim aboneliği gerekiyor.' });
+  }
+
   const now = Date.now();
 
-  // Kullanıcı cooldown kontrolü
-  const ckKey = 'ck:' + ip + ':' + il;
+  // Subscription bazlı cooldown
+  const ckKey = 'ck:' + subId + ':' + il;
   const ckVal = await redis(['GET', ckKey]);
   if (ckVal.result) {
-    return res.status(200).json({ status: 'cooldown', message: 'Kısa süre önce bildirdin.' });
+    return res.status(200).json({ status: 'cooldown' });
   }
   await redis(['SET', ckKey, '1', 'PX', String(COOLDOWN_MS)]);
 
-  // Kullanıcıyı 10 saniyelik listeye ekle (sorted set: score=ts, member=ip)
+  // 10 saniyelik pencerede bu subscription'ı ekle
   const setKey = 'hs:' + il;
-  await redis(['ZADD', setKey, String(now), ip + ':' + now]);
-  // Süresi dolan kayıtları temizle
+  await redis(['ZADD', setKey, String(now), subId]);
   await redis(['ZREMRANGEBYSCORE', setKey, '0', String(now - WINDOW_MS)]);
-  // TTL ayarla
   await redis(['PEXPIRE', setKey, String(WINDOW_MS * 2)]);
-  // Kaç farklı kullanıcı var?
+
   const countRes = await redis(['ZCARD', setKey]);
   const count = countRes.result || 0;
 
   if (count >= THRESHOLD) {
-    // Son bildirim zamanı kontrolü
     const notifKey = 'notif:' + il;
     const lastNotif = await redis(['GET', notifKey]);
     if (!lastNotif.result) {
