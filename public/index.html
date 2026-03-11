@@ -47,6 +47,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .hissettim-btn:hover{opacity:.88}
 .hissettim-btn:disabled{opacity:.45;cursor:not-allowed}
 .hissettim-btn.sent{background:linear-gradient(135deg,#1a9a52,#15803d)}
+.hissettim-uyari{font-size:10px;color:#e03535;text-align:center;margin-top:4px;font-family:'JetBrains Mono',monospace;animation:uyariblink 2s ease-in-out infinite}
+@keyframes uyariblink{0%,100%{opacity:1}50%{opacity:.35}}
 .hissettim-info{font-size:11px;color:var(--text3);text-align:center;margin-top:6px;min-height:16px;font-family:'JetBrains Mono',monospace}
 .tdb-btn{display:inline-flex;align-items:center;gap:6px;margin-left:14px;padding:5px 12px;background:#000;color:#fff;border-radius:20px;border:1.5px solid rgba(255,255,255,0.15);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.06em;text-decoration:none;cursor:pointer;animation:tdb-pulse 2.4s ease-in-out infinite;flex-shrink:0}
 .tdb-btn:hover{background:#111;border-color:rgba(255,255,255,.35)}
@@ -328,6 +330,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
           Deprem Hissettim
         </button>
         <div class="hissettim-info" id="hissettimInfo"></div>
+        <div class="hissettim-uyari">Gereksiz kullananlar kalıcı olarak engellenir.</div>
       </div>
     </div>
     <div class="tabs">
@@ -837,6 +840,19 @@ async function hissettimBas() {
   const btn  = document.getElementById('hissettimBtn');
   const info = document.getElementById('hissettimInfo');
 
+  // OneSignal subscription ID al
+  let subId = null;
+  try {
+    if (window.OneSignal) {
+      subId = await OneSignal.User.PushSubscription.id;
+    }
+  } catch(e) {}
+
+  if (!subId) {
+    info.textContent = 'Bildirim izni gerekiyor. Lütfen bildirimlere abone ol.';
+    return;
+  }
+
   hissettimCooldown = true;
   btn.disabled = true;
   btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Gönderiliyor...';
@@ -845,7 +861,7 @@ async function hissettimBas() {
     const r = await fetch('https://tdb-source.vercel.app/api/hissettim', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ il: aktifIl })
+      body: JSON.stringify({ il: aktifIl, subId })
     });
     const d = await r.json();
 
