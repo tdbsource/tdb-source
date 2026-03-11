@@ -83,6 +83,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .region-card::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
 .region-title{font-family:'Syne',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text);padding:7px 10px;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,.1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;margin:-10px -10px 8px -10px;border-radius:14px 14px 0 0;position:sticky;top:-10px;z-index:2}
 .prov-list{display:flex;flex-direction:column;gap:3px}
+.prov-pill.new-quake{animation:newquake 0.6s ease-in-out infinite}
+@keyframes newquake{0%,100%{outline:2px solid #e03535;outline-offset:2px;box-shadow:0 0 8px #e03535}50%{outline:2px solid transparent;box-shadow:none}}
 .prov-pill{display:flex;align-items:center;justify-content:space-between;padding:3px 7px;border-radius:6px;background:rgba(255,255,255,0.45);border:1px solid rgba(0,0,0,.06);cursor:pointer;transition:all .15s ease;gap:4px;min-height:22px}
 .prov-pill:hover{background:rgba(255,255,255,.78);border-color:rgba(0,0,0,.14);transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
 .prov-pill.active{background:rgba(192,57,43,.12);border-color:rgba(192,57,43,.35)}
@@ -656,14 +658,19 @@ async function fetchKandilli() {
     const events = json.events || [];
     const now = Date.now();
     const dayAgo = now - 24*60*60*1000;
+
+    // Yeni deprem tespiti — önceki ID listesiyle karşılaştır
+    const prevIds = new Set(allEqs.map(e => e.id).filter(Boolean));
+
     allEqs = events.map(e => ({
       lat: parseFloat(e.latitude),
       lon: parseFloat(e.longitude),
       depth: parseFloat(e.depth),
       mag: parseFloat(e.magnitude),
+      id: e.location + '|' + e.date,
       place: e.location || (e.district ? e.district + (e.province ? ' (' + e.province + ')' : '') : '') || '',
       province: normProv(e.province),
-      ts: new Date(e.date || 0).getTime()   // EMSC UTC "Z", AFAD +03:00 — new Date her ikisini de doğru parse eder
+      ts: new Date(e.date || 0).getTime()
     })).filter(e => !isNaN(e.ts));
     last24h = allEqs.filter(e => e.ts > dayAgo);
     topWeek = [...allEqs].sort((a,b) => b.mag - a.mag).slice(0, 8);
@@ -671,6 +678,7 @@ async function fetchKandilli() {
     updateTicker();
     buildDropdowns();
     updateRiskDots();
+    flashNewQuakes(prevIds);
   } catch(e) {
     console.warn('AFAD bağlantı hatası, demo veri kullanılıyor:', e);
     loadDemoData();
@@ -717,6 +725,27 @@ function buildDropdowns() {
         <div class="dinfo"><div class="dloc">${d.place}</div><div class="dtime">${timeAgo(d.ts)}</div></div>
         <div class="ddepth">${d.depth} km</div>
       </div>`).join('');
+}
+
+// ── YENİ DEPREM FLASH ─────────────────────────────────────────────────────
+function flashNewQuakes(prevIds) {
+  if (!prevIds || prevIds.size === 0) return; // İlk yükleme — flash yok
+  const newEqs = allEqs.filter(e => e.id && !prevIds.has(e.id));
+  if (!newEqs.length) return;
+
+  // Hangi iller etkilendi?
+  const affectedProvs = new Set(newEqs.map(e => normProv(e.province)).filter(Boolean));
+
+  affectedProvs.forEach(prov => {
+    document.querySelectorAll('.prov-pill').forEach(pill => {
+      const pid = pill.dataset.id;
+      const pillProv = normProv(PROV_MAP[pid] || pid);
+      if (pillProv === prov) {
+        pill.classList.add('new-quake');
+        setTimeout(() => pill.classList.remove('new-quake'), 5000);
+      }
+    });
+  });
 }
 
 // ── BİR İL İÇİN DEPREMLERİ FİLTRELE ────────────────────────────────────
@@ -1025,7 +1054,7 @@ function loadDemoData() {
 // ── BAŞLAT ────────────────────────────────────────────────────────────────
 fetchKandilli();
 // Her 2 dakikada bir güncelle
-setInterval(fetchKandilli, 60 * 1000); // Her 60 saniyede EMSC güncelle
+setInterval(fetchKandilli, 30 * 1000);
 </script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
