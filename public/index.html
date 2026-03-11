@@ -1162,6 +1162,12 @@ REGIONS.forEach(reg => {
   card.appendChild(title);
   const list = document.createElement('div');
   list.className = 'prov-list';
+  // Çok illi bölgelerde kart scroll
+  if (reg.provs.length > 14) {
+    card.style.overflowY = 'auto';
+    card.style.maxHeight = '100%';
+  }
+
   reg.provs.forEach(p => {
     const pill = document.createElement('div');
     pill.className = 'prov-pill';
