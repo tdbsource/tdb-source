@@ -90,7 +90,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .region-card::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
 .region-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text);padding:11px 10px;text-align:center;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border:1.5px solid #111;border-radius:14px 14px 0 0;position:sticky;top:0;z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;margin:-10px -10px 8px -10px;border-radius:14px 14px 0 0;position:sticky;top:-10px;z-index:2}
 .prov-list{display:flex;flex-wrap:wrap;gap:3px;padding:6px}
-.prov-section-header{flex-basis:100%;border-radius:0 !important;margin:6px 0 0 0 !important;border-left:none !important;border-right:none !important}
+.prov-section-header{flex-basis:100%;}
 .prov-pill.new-quake{animation:newquake 0.6s ease-in-out infinite}
 @keyframes newquake{0%,100%{outline:2px solid #e03535;outline-offset:2px;box-shadow:0 0 8px #e03535}50%{outline:2px solid transparent;box-shadow:none}}
 .prov-pill{display:flex;align-items:center;justify-content:space-between;padding:3px 7px;border-radius:6px;background:rgba(255,255,255,0.82);border:1px solid rgba(0,0,0,.10);cursor:pointer;transition:all .15s ease;gap:4px;min-height:22px;flex:1 1 calc(50% - 3px);min-width:80px}
@@ -1165,7 +1165,7 @@ REGIONS.forEach(reg => {
   title.className = 'region-title';
   title.textContent = reg.title;
   card.appendChild(title);
-  const list = document.createElement('div');
+  let list = document.createElement('div');
   list.className = 'prov-list';
   // Çok illi bölgelerde kart scroll
   if (reg.provs.length > 14) {
@@ -1176,10 +1176,14 @@ REGIONS.forEach(reg => {
   reg.provs.forEach(p => {
     const pill = document.createElement('div');
     if (p.header) {
+      // Mevcut prov-list'i kapat, yeni bir başlık + liste ekle
+      card.appendChild(list);
       const hdr = document.createElement('div');
-      hdr.className = 'region-title prov-section-header';
+      hdr.className = 'region-title';
       hdr.textContent = p.n.replace(/─/g,'').trim();
-      list.appendChild(hdr);
+      card.appendChild(hdr);
+      list = document.createElement('div');
+      list.className = 'prov-list';
       return;
     }
     pill.className = 'prov-pill';
