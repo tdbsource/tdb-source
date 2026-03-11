@@ -90,6 +90,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .region-card::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
 .region-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text);padding:11px 10px;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border:1.5px solid #111;border-radius:14px 14px 0 0;position:sticky;top:0;z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;margin:-10px -10px 8px -10px;border-radius:14px 14px 0 0;position:sticky;top:-10px;z-index:2}
 .prov-list{display:flex;flex-wrap:wrap;gap:3px;padding:6px}
+.prov-section-header{flex-basis:100%;}
 .prov-pill.new-quake{animation:newquake 0.6s ease-in-out infinite}
 @keyframes newquake{0%,100%{outline:2px solid #e03535;outline-offset:2px;box-shadow:0 0 8px #e03535}50%{outline:2px solid transparent;box-shadow:none}}
 .prov-pill{display:flex;align-items:center;justify-content:space-between;padding:3px 7px;border-radius:6px;background:rgba(255,255,255,0.82);border:1px solid rgba(0,0,0,.10);cursor:pointer;transition:all .15s ease;gap:4px;min-height:22px;flex:1 1 calc(50% - 3px);min-width:80px}
@@ -479,7 +480,12 @@ const REGIONS = [
     {id:'izmir',n:'İzmir',r:'high'},{id:'manisa',n:'Manisa',r:''},
     {id:'aydin',n:'Aydın',r:''},{id:'denizli',n:'Denizli',r:''},
     {id:'mugla',n:'Muğla',r:'mid'},{id:'afyon',n:'Afyon',r:''},
-    {id:'kutahya',n:'Kütahya',r:''},{id:'usak',n:'Uşak',r:''}
+    {id:'kutahya',n:'Kütahya',r:''},{id:'usak',n:'Uşak',r:''},
+    {id:'_akdeniz_header', n:'── Akdeniz ──', r:'', header:true},
+    {id:'antalya',n:'Antalya',r:''},{id:'mersin',n:'Mersin',r:''},
+    {id:'adana',n:'Adana',r:''},{id:'hatay',n:'Hatay',r:'high'},
+    {id:'burdur',n:'Burdur',r:''},{id:'isparta',n:'Isparta',r:''},
+    {id:'kahramanmaras',n:'K.Maraş',r:'high'},{id:'osmaniye',n:'Osmaniye',r:''}
   ]},
   { id:'karadeniz', title:'Karadeniz', provs:[
     {id:'trabzon',n:'Trabzon',r:''},{id:'samsun',n:'Samsun',r:'mid'},
@@ -501,20 +507,17 @@ const REGIONS = [
     {id:'nigde',n:'Niğde',r:''},{id:'yozgat',n:'Yozgat',r:''},
     {id:'cankiri',n:'Çankırı',r:''}
   ]},
-  { id:'akdeniz', title:'Akdeniz', provs:[
-    {id:'antalya',n:'Antalya',r:''},{id:'mersin',n:'Mersin',r:''},
-    {id:'adana',n:'Adana',r:''},{id:'hatay',n:'Hatay',r:'high'},
-    {id:'burdur',n:'Burdur',r:''},{id:'isparta',n:'Isparta',r:''},
-    {id:'kahramanmaras',n:'K.Maraş',r:'high'},{id:'osmaniye',n:'Osmaniye',r:''}
-  ]},
-  { id:'dogu', title:'Doğu/Güneydoğu', provs:[
+
+  { id:'dogu', title:'Doğu Anadolu', provs:[
     {id:'erzurum',n:'Erzurum',r:'mid'},{id:'van',n:'Van',r:'mid'},
     {id:'kars',n:'Kars',r:''},{id:'malatya',n:'Malatya',r:'mid'},
     {id:'elazig',n:'Elazığ',r:'mid'},{id:'erzincan',n:'Erzincan',r:'mid'},
     {id:'bingol',n:'Bingöl',r:'mid'},{id:'bitlis',n:'Bitlis',r:''},
     {id:'hakkari',n:'Hakkari',r:''},{id:'agri',n:'Ağrı',r:''},
     {id:'igdir',n:'Iğdır',r:''},{id:'ardahan',n:'Ardahan',r:''},
-    {id:'mus',n:'Muş',r:''},{id:'tunceli',n:'Tunceli',r:'mid'},
+    {id:'mus',n:'Muş',r:''},{id:'tunceli',n:'Tunceli',r:'mid'}
+  ]},
+  { id:'guneydogu', title:'Güneydoğu Anadolu', provs:[
     {id:'gaziantep',n:'Gaziantep',r:'high'},{id:'diyarbakir',n:'Diyarbakır',r:'mid'},
     {id:'sanliurfa',n:'Şanlıurfa',r:''},{id:'batman',n:'Batman',r:''},
     {id:'adiyaman',n:'Adıyaman',r:'mid'},{id:'siirt',n:'Siirt',r:''},
@@ -1172,6 +1175,13 @@ REGIONS.forEach(reg => {
 
   reg.provs.forEach(p => {
     const pill = document.createElement('div');
+    if (p.header) {
+      const hdr = document.createElement('div');
+      hdr.className = 'region-title prov-section-header';
+      hdr.textContent = p.n.replace(/─/g,'').trim();
+      list.appendChild(hdr);
+      return;
+    }
     pill.className = 'prov-pill';
     pill.dataset.id = p.id;
     pill.innerHTML = `<span class="prov-name">${p.n}</span>${p.r ? `<span class="rdot ${p.r}"></span>` : '<span class="rdot"></span>'}`;
