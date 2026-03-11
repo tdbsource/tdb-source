@@ -1,11 +1,16 @@
-const reports = new Map(); // il -> [{ip, ts}]
-const cooldowns = new Map(); // ip+il -> ts
-const notified = new Map(); // il -> ts (son bildirim zamanı)
+const THRESHOLD    = parseInt(process.env.HISSET_THRESHOLD || '5');
+const WINDOW_MS    = 10 * 1000;
+const COOLDOWN_MS  = 30 * 1000;
+const NOTIF_CD_MS  = 60 * 1000;
 
-const THRESHOLD = parseInt(process.env.HISSET_THRESHOLD || '5');
-const WINDOW_MS = 10 * 1000;      // 10 saniye
-const COOLDOWN_MS = 30 * 1000;    // aynı kullanıcı 30 sn beklesin
-const NOTIF_COOLDOWN_MS = 60 * 1000; // aynı il için 60 sn içinde tekrar bildirim gitmesin
+async function redis(cmd) {
+  const url   = process.env.UPSTASH_REDIS_URL;
+  const token = process.env.UPSTASH_REDIS_TOKEN;
+  const r = await fetch(url + '/' + cmd.map(encodeURIComponent).join('/'), {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  return r.json();
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,39 +20,41 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   let body = req.body;
-  if (typeof body === 'string') {
-    try { body = JSON.parse(body); } catch { body = {}; }
-  }
+  if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
 
   const { il } = body || {};
   if (!il) return res.status(400).json({ error: 'il eksik' });
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  const ip  = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
   const now = Date.now();
-  const ckKey = ip + '|' + il;
 
-  // Aynı kullanıcı cooldown kontrolü
-  if (cooldowns.has(ckKey) && now - cooldowns.get(ckKey) < COOLDOWN_MS) {
+  // Kullanıcı cooldown kontrolü
+  const ckKey = 'ck:' + ip + ':' + il;
+  const ckVal = await redis(['GET', ckKey]);
+  if (ckVal.result) {
     return res.status(200).json({ status: 'cooldown', message: 'Kısa süre önce bildirdin.' });
   }
-  cooldowns.set(ckKey, now);
+  await redis(['SET', ckKey, '1', 'PX', String(COOLDOWN_MS)]);
 
-  // Rapor listesini güncelle — eski kayıtları temizle
-  const list = (reports.get(il) || []).filter(r => now - r.ts < WINDOW_MS);
-  // Aynı IP'yi tekrar ekleme
-  if (!list.find(r => r.ip === ip)) list.push({ ip, ts: now });
-  reports.set(il, list);
+  // Kullanıcıyı 10 saniyelik listeye ekle (sorted set: score=ts, member=ip)
+  const setKey = 'hs:' + il;
+  await redis(['ZADD', setKey, String(now), ip + ':' + now]);
+  // Süresi dolan kayıtları temizle
+  await redis(['ZREMRANGEBYSCORE', setKey, '0', String(now - WINDOW_MS)]);
+  // TTL ayarla
+  await redis(['PEXPIRE', setKey, String(WINDOW_MS * 2)]);
+  // Kaç farklı kullanıcı var?
+  const countRes = await redis(['ZCARD', setKey]);
+  const count = countRes.result || 0;
 
-  const count = list.length;
-
-  // Eşik kontrolü
   if (count >= THRESHOLD) {
-    const lastNotif = notified.get(il) || 0;
-    if (now - lastNotif > NOTIF_COOLDOWN_MS) {
-      notified.set(il, now);
-      reports.set(il, []); // sayacı sıfırla
+    // Son bildirim zamanı kontrolü
+    const notifKey = 'notif:' + il;
+    const lastNotif = await redis(['GET', notifKey]);
+    if (!lastNotif.result) {
+      await redis(['SET', notifKey, '1', 'PX', String(NOTIF_CD_MS)]);
+      await redis(['DEL', setKey]);
 
-      // OneSignal bildirimi gönder
       const apiKey = process.env.ONESIGNAL_API_KEY;
       const appId  = process.env.ONESIGNAL_APP_ID;
       if (apiKey && appId) {
@@ -55,7 +62,7 @@ export default async function handler(req, res) {
         const message = il + ' bölgesindeki kullanıcılar sarsıntı hissettiğini bildiriyor.';
         await fetch('https://api.onesignal.com/notifications', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Key ${apiKey}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Key ' + apiKey },
           body: JSON.stringify({
             app_id: appId,
             included_segments: ['Total Subscriptions'],
@@ -66,7 +73,6 @@ export default async function handler(req, res) {
           })
         }).catch(() => {});
       }
-
       return res.status(200).json({ status: 'notified', count });
     }
   }
