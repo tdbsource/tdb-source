@@ -904,67 +904,133 @@ async function openPanel(cityId, cityName) {
 function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count) {
   const ctx = IL_CTX[cityId];
 
-  // Yardımcı hesaplar
-  const avgDepth = count > 0 ? (eqs.reduce((s,e) => s + e.depth, 0) / count).toFixed(1) : 0;
+  // Gerçek zamanlı veri hesapları
+  const avgDepth = count > 0 ? +(eqs.reduce((s,e) => s+e.depth, 0) / count).toFixed(1) : 0;
   const shallow  = eqs.filter(e => e.depth < 10).length;
   const deep     = eqs.filter(e => e.depth >= 35).length;
   const m4plus   = eqs.filter(e => e.mag >= 4).length;
-  const m3plus   = eqs.filter(e => e.mag >= 3).length;
-  const m2plus   = eqs.filter(e => e.mag >= 2).length;
+  const m3plus   = eqs.filter(e => e.mag >= 3 && e.mag < 4).length;
+  const m2plus   = eqs.filter(e => e.mag >= 2 && e.mag < 3).length;
+  const enBuyuk  = maxM > 0 ? maxM.toFixed(1) : null;
+  const sonOlay  = eqs[0];
+  const seed     = Math.floor(Date.now() / 1000); // Her saniye farklı
 
-  // Derinlik yorumu
-  function derinlikCumlesi() {
-    if (count === 0) return "";
-    if (shallow >= count * 0.6)
-      return "Odakların büyük bölümü 10 km'nin altında seyrediyor; bu, yüzey yakını kırıkların gerilim boşalttığına işaret ediyor.";
-    if (deep >= count * 0.4)
-      return avgDepth + " km ortalama derinlikle olaylar, derin kabuk hareketlerinden kaynaklanıyor olabilir.";
-    return "Ortalama odak derinliği " + avgDepth + " km; bölgedeki tipik tektonik örüntüyle uyumlu bir dağılım.";
+  function sec(liste) {
+    return liste[seed % liste.length];
   }
 
-  // Büyüklük yorumu
-  function buyuklukCumlesi() {
-    if (m4plus >= 2) return m4plus + " olay M4.0 eşiğini geçti; bunlar bölge genelinde hissedilebilecek büyüklükte.";
-    if (m4plus === 1) return "Bu süreçteki en dikkat çekici olay M" + maxM.toFixed(1) + " ile ölçüldü.";
-    if (m3plus > 0) return m3plus + " olay M3.0 sınırını aştı; halkın bir kısmı tarafından hissedilmiş olabilir.";
-    if (m2plus > 0) return "Kaydedilen olaylar M2 ile M3 arasında yoğunlaşıyor; çoğu yalnızca aletsel olarak tespit edilebilir düzeyde.";
-    return "Kaydedilen sismik olaylar düşük büyüklük aralığında seyretti.";
-  }
-
-  // Aktivite yorumu — farklı ifadeler kullan
-  const aktiviteIfadeleri = {
-    yüksek: ["bölgede belirgin bir sismik hareketlilik göze çarpıyor", "sismik aktivite son günlerde yoğunluk kazandı", "kayıt sayısı dikkat çekici bir düzeye ulaştı"],
-    orta:   ["orta düzey bir sismik aktivite gözlemleniyor", "bölge ölçülü bir hareketlilik içinde", "aktivite normal sınırların biraz üzerinde seyrediyor"],
-    düşük:  ["aktivite görece sınırlı kaldı", "sismik tablo sakin bir görünüm sergiliyor", "kayıt sayısı beklenen düzeyin altında"]
-  };
-  function rastgeleIfade(liste) {
-    return liste[Math.floor(Date.now() / 60000) % liste.length];
-  }
-  const seviye = count >= 15 ? "yüksek" : count >= 5 ? "orta" : "düşük";
-  const aktivite = rastgeleIfade(aktiviteIfadeleri[seviye]);
-
-  // SAKİN DÖNEM
+  // ── SAKİN DÖNEM ──────────────────────────────────────────────────────────
   if (count === 0) {
-    if (!ctx) return city + " ilinde son 3 günde kayda değer bir sismik hareket tespit edilmedi. Bölge şu an görece sakin.";
-    const sakinler = [
-      city + ", " + ctx.fay + " konumunda yer alıyor. Son 3 günde kayıtlı bir hareket yok; ancak bölgenin tektonik geçmişi göz önünde bulundurulduğunda bu sessizlik kalıcı olmayabilir.",
-      ctx.not + ". Buna karşın son 3 günlük veri " + city + " için herhangi bir sismik hareket kaydetmedi; bölge şimdilik sakin.",
-      city + " şu an sismik olarak sessiz bir dönemden geçiyor. " + ctx.fay + " konumundaki bu bölge tarihsel olarak aktif olmakla birlikte son 3 günde ölçülebilir bir hareket gözlemlenmedi."
-    ];
-    return sakinler[Math.floor(Date.now() / 3600000) % sakinler.length];
+    if (!ctx) return city + " ilinde son 3 günde herhangi bir sismik hareket kaydedilmedi. Bölge şu an sessiz.";
+    return sec([
+      city + " şu an sismik olarak sakin bir dönem geçiriyor. " + ctx.fay + " konumundaki bu bölge, " + ctx.not.charAt(0).toLowerCase() + ctx.not.slice(1) + "; ancak son 3 günde ölçülebilir bir hareket gözlemlenmedi.",
+      city + ", " + ctx.fay + " konumunda yer alıyor. Son 3 gün içinde kayıtlı bir sismik hareket bulunmuyor. " + ctx.not + ".",
+      ctx.not + ". Buna karşın son 3 günde " + city + " için herhangi bir olay kaydedilmedi; bölge şimdilik sessiz görünüyor."
+    ]);
   }
 
-  // AKTİF DÖNEM — ctx var
+  // ── DEPE RİNLİK YORUMU ───────────────────────────────────────────────────
+  function derinlik() {
+    if (shallow >= count * 0.65)
+      return sec([
+        "Odakların büyük çoğunluğu 10 km'nin altında; bu durum, yüzey yakını kırıkların gerilim boşalttığına işaret ediyor.",
+        "Sığ odaklı olaylar ön plana çıkıyor: derinliklerin büyük bölümü 10 km'nin altında seyrediyor.",
+        "10 km'nin altındaki sığ odaklar, kabuğun üst tabakalarındaki aktif kırıklanmayı yansıtıyor."
+      ]);
+    if (deep >= count * 0.4)
+      return sec([
+        avgDepth + " km ortalama derinlikle olaylar, derin kabuk dinamiklerinden beslendiğine işaret ediyor.",
+        "Odak derinliklerinin ortalaması " + avgDepth + " km düzeyinde; derin kabuk gerilimi belirleyici etken olabilir.",
+        "Olayların önemli bir kısmı 35 km'nin altında kaydedildi; bu, alt kabuk kökenli gerilmeleri akla getiriyor."
+      ]);
+    return sec([
+      "Ortalama odak derinliği " + avgDepth + " km olup bu değer, bölgenin tipik tektonik örüntüsüyle örtüşüyor.",
+      "Odaklar " + avgDepth + " km civarında yoğunlaşıyor; hem sığ hem de orta derinlikli kaynaklardan beslenen karma bir tablo.",
+      avgDepth + " km'lik ortalama derinlik, bölgede her iki kabuk tabakasının da aktif olduğunu düşündürüyor."
+    ]);
+  }
+
+  // ── BÜYÜKLÜK YORUMU ──────────────────────────────────────────────────────
+  function buyukluk() {
+    if (m4plus >= 3)
+      return sec([
+        m4plus + " ayrı olay M4.0 eşiğini aştı; bu büyüklükteki sarsıntılar geniş bir alanda hissedilebilir.",
+        "Son 3 günde " + m4plus + " kez M4.0 üzeri aktivite kaydedildi; bölge belirgin bir gerilim boşaltımı yaşıyor.",
+        "M4.0 üzerinde " + m4plus + " olay öne çıkıyor; bunlar çevre illerde de hissedilmiş olabilir."
+      ]);
+    if (m4plus === 2)
+      return sec([
+        "İki ayrı M4.0 üzeri olay kayıt altına alındı; bunlar bölge halkı tarafından hissedilmiş olabilir.",
+        "En dikkat çekici iki olay M4.0 eşiğini geçti. En büyüğü M" + enBuyuk + " olarak ölçüldü.",
+        "M4.0 ve üzeri iki sarsıntı, bölgedeki tektonik gerilimin belirgin bir biçimde dışa vurduğunu gösteriyor."
+      ]);
+    if (m4plus === 1)
+      return sec([
+        "En büyük olay M" + enBuyuk + " ile ölçüldü; bu büyüklük, bölge sakinlerinin bir kısmı tarafından hissedilebilir.",
+        "Dönemin en dikkat çekici sarsıntısı M" + enBuyuk + " büyüklüğünde gerçekleşti.",
+        "M" + enBuyuk + " büyüklüğündeki olay, kısa süreli de olsa yüzey etkileri yaratmış olabilir."
+      ]);
+    if (m3plus > 0)
+      return sec([
+        m3plus + " olay M3.0 sınırını aştı; bu büyüklükteki sarsıntılar hassas kişiler tarafından hissedilebilir.",
+        "Olayların " + m3plus + " tanesi M3.0 ile M4.0 arasında kaydedildi; bölgede orta düzey bir aktivite söz konusu.",
+        "M3 ile M4 arasındaki " + m3plus + " olay, bölgede süregelen tektonik gerilimin göstergesi."
+      ]);
+    if (m2plus > 0)
+      return sec([
+        "Kaydedilen olayların büyük bölümü M2 ile M3 arasında; çoğu yalnızca sismik aletlerle tespit edilebilir düzeyde.",
+        "Olaylar M2-M3 aralığında seyrediyor; insan tarafından hissedilmesi pek olası değil.",
+        "Düşük büyüklüklü olaylar hâkim; bunlar kabuk içindeki küçük ölçekli gerilim boşalımlarına karşılık geliyor."
+      ]);
+    return sec([
+      "Tüm olaylar M2'nin altında seyretti; bunlar yalnızca hassas sismik ağlar tarafından tespit edilebildi.",
+      "Kaydedilen aktivite M2 eşiğinin altında kaldı; insan tarafından hissedilebilir düzeyde değil.",
+      "Çok düşük büyüklüklü mikroaktivite söz konusu; sismik ağlar dışında fark edilmesi güç."
+    ]);
+  }
+
+  // ── AKTİVİTE DURUMU ──────────────────────────────────────────────────────
+  function aktivite() {
+    if (count >= 20)
+      return sec([
+        "Son 3 günde " + count + " olayla bölge yoğun bir sismik aktivite içinde.",
+        city + "'de son 3 günde " + count + " sismik olay kaydedildi; bu, dikkat çekici bir yoğunluğa işaret ediyor.",
+        count + " olayla son 3 gün bölge için oldukça hareketli geçti."
+      ]);
+    if (count >= 10)
+      return sec([
+        "Son 3 günde " + count + " olayla bölgede belirgin bir hareketlilik gözlemleniyor.",
+        city + " son 3 günde " + count + " sismik olay kaydetti; aktivite ortalamanın üzerinde seyrediyor.",
+        count + " kayıtla son 3 gün, bölge için normalin üzerinde bir tablo ortaya koyuyor."
+      ]);
+    if (count >= 5)
+      return sec([
+        "Son 3 günde " + count + " sismik olay kayıt altına alındı; aktivite orta düzeyde seyrediyor.",
+        city + " için son 3 günde " + count + " olay tespit edildi.",
+        count + " olayla son 3 gün, bölgede ölçülü bir sismik hareketliliğe işaret ediyor."
+      ]);
+    return sec([
+      "Son 3 günde " + count + " olay kaydedildi; aktivite görece sınırlı.",
+      city + " son 3 günde " + count + " olayla düşük düzeyde bir sismik hareketlilik gösterdi.",
+      count + " olayla son 3 gün, bölge için sakin sayılabilecek bir tablo sunuyor."
+    ]);
+  }
+
+  // ── METİN BİRLEŞTİRME ────────────────────────────────────────────────────
   if (ctx) {
-    const cumle1 = city + ", " + ctx.fay + " konumunda.";
-    const cumle2 = "Son 3 günde " + count + " olay kaydedildi; " + aktivite + ". " + buyuklukCumlesi();
-    const cumle3 = derinlikCumlesi() + " " + ctx.not + ".";
-    return cumle1 + " " + cumle2 + " " + cumle3;
+    const c1 = aktivite();
+    const c2 = buyukluk();
+    const c3 = derinlik();
+    const c4 = ctx.not.endsWith('.') ? ctx.not : ctx.not + '.';
+
+    return sec([
+      city + ", " + ctx.fay + " konumunda yer alıyor. " + c1 + " " + c2 + " " + c3 + " " + c4,
+      c1 + " " + c2 + " " + c3 + " " + city + ", " + ctx.fay + " konumundadır; " + c4.charAt(0).toLowerCase() + c4.slice(1),
+      city + ", " + ctx.fay + " konumundadır. " + c3 + " " + c1 + " " + c2 + " " + c4
+    ]);
   }
 
-  // ctx yok — genel ama akıcı
-  return city + " için son 3 günde " + count + " sismik olay kayıt altına alındı; " + aktivite + ". " +
-    buyuklukCumlesi() + " " + derinlikCumlesi();
+  return aktivite() + " " + buyukluk() + " " + derinlik();
 }
 
 // ── BÖLGE KARTLARINI OLUŞTUR ──────────────────────────────────────────────
