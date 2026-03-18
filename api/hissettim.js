@@ -24,23 +24,15 @@ export default async function handler(req, res) {
 
   const { il, subId } = body || {};
   if (!il) return res.status(400).json({ error: 'il eksik' });
-
-  // Minimum ID uzunluğu kontrolü
-  if (!subId || subId.length < 8) {
-    return res.status(400).json({ error: 'Geçersiz istek.' });
-  }
+  if (!subId || subId.length < 5) return res.status(400).json({ error: 'Geçersiz istek.' });
 
   const now = Date.now();
 
-  // Subscription bazlı cooldown
   const ckKey = 'ck:' + subId + ':' + il;
   const ckVal = await redis(['GET', ckKey]);
-  if (ckVal.result) {
-    return res.status(200).json({ status: 'cooldown' });
-  }
+  if (ckVal.result) return res.status(200).json({ status: 'cooldown' });
   await redis(['SET', ckKey, '1', 'PX', String(COOLDOWN_MS)]);
 
-  // 10 saniyelik pencerede bu subscription'ı ekle
   const setKey = 'hs:' + il;
   await redis(['ZADD', setKey, String(now), subId]);
   await redis(['ZREMRANGEBYSCORE', setKey, '0', String(now - WINDOW_MS)]);
