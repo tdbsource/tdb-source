@@ -25,9 +25,9 @@ export default async function handler(req, res) {
   const { il, subId } = body || {};
   if (!il) return res.status(400).json({ error: 'il eksik' });
 
-  // Kayıtsız kullanıcıları reddet
-  if (!subId || subId.length < 10) {
-    return res.status(403).json({ error: 'Bildirim aboneliği gerekiyor.' });
+  // Minimum ID uzunluğu kontrolü
+  if (!subId || subId.length < 8) {
+    return res.status(400).json({ error: 'Geçersiz istek.' });
   }
 
   const now = Date.now();
