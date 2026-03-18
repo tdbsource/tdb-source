@@ -298,12 +298,21 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="ai-tag"><div class="ai-ico">✦</div><span class="ai-tag-lbl">Source Gen 8 Analiz</span></div>
         <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
         <div class="risk-pill" id="rPill"></div>
-        <button class="hissettim-btn" id="hissettimBtn" onclick="hissettimBas()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="hissettimIcon"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-          <span id="hissettimTxt">Deprem Hissettim</span>
-        </button>
-        <div class="hissettim-info" id="hissettimInfo"></div>
-        <div class="hissettim-uyari">Gereksiz kullananlar kalıcı olarak engellenir.</div>
+        <div id="hisset-wrap" style="margin-top:10px;">
+          <div id="hisset-kart" onclick="hissettimBas()" style="
+            display:flex;align-items:center;justify-content:space-between;
+            background:#1c2030;border-radius:10px;padding:10px 14px;
+            cursor:pointer;-webkit-tap-highlight-color:transparent;
+            user-select:none;-webkit-user-select:none;
+          ">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div id="hisset-dot" style="width:8px;height:8px;border-radius:50%;background:#e03535;flex-shrink:0;"></div>
+              <span id="hisset-lbl" style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#fff;letter-spacing:.02em;">Deprem Hissettim</span>
+            </div>
+            <span id="hisset-badge" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:.06em;">BILDIR</span>
+          </div>
+          <div id="hisset-info" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#e03535;text-align:center;margin-top:5px;min-height:14px;letter-spacing:.04em;animation:uyariblink 2s ease-in-out infinite;">Gereksiz kullananlar kalıcı olarak engellenir.</div>
+        </div>
       </div>
     </div>
     <div class="tabs">
@@ -820,12 +829,12 @@ let aktifIl = '';
 async function hissettimBas() {
   if (hissettimCooldown || !aktifIl) return;
 
-  const btn  = document.getElementById('hissettimBtn');
-  const txt  = document.getElementById('hissettimTxt');
-  const icon = document.getElementById('hissettimIcon');
-  const info = document.getElementById('hissettimInfo');
+  const kart  = document.getElementById('hisset-kart');
+  const lbl   = document.getElementById('hisset-lbl');
+  const dot   = document.getElementById('hisset-dot');
+  const badge = document.getElementById('hisset-badge');
+  const info  = document.getElementById('hisset-info');
 
-  // SubId
   let subId = null;
   try { subId = window.OneSignal?.User?.PushSubscription?.id || null; } catch(e) {}
   if (!subId) {
@@ -835,15 +844,15 @@ async function hissettimBas() {
   }
 
   hissettimCooldown = true;
-  btn.disabled = true;
+  kart.style.pointerEvents = 'none';
 
-  // 1 — Gönderiliyor
-  icon.style.display = 'none';
-  txt.textContent = 'Gönderiliyor...';
-  btn.style.background = '';
+  // Gönderiliyor
+  dot.style.background = '#e8a800';
+  lbl.textContent = 'Gönderiliyor...';
+  badge.textContent = '...';
+  info.textContent = '';
 
   let count = 0;
-
   try {
     const r = await fetch('https://tdb-source.vercel.app/api/hissettim', {
       method: 'POST',
@@ -852,33 +861,33 @@ async function hissettimBas() {
     });
     const d = await r.json();
     if (d.status === 'cooldown') {
-      icon.style.display = '';
-      txt.textContent = 'Deprem Hissettim';
-      btn.disabled = false;
-      hissettimCooldown = false;
+      dot.style.background = '#e03535';
+      lbl.textContent = 'Deprem Hissettim';
+      badge.textContent = 'BILDIR';
       info.textContent = 'Az önce bildirdin.';
-      setTimeout(() => { info.textContent = ''; }, 2000);
+      kart.style.pointerEvents = '';
+      hissettimCooldown = false;
+      setTimeout(() => { info.textContent = 'Gereksiz kullananlar kalıcı olarak engellenir.'; }, 2000);
       return;
     }
     count = d.count || 1;
   } catch(e) { count = 1; }
 
-  // 1 saniye bekle sonra yeşile dön
-  await new Promise(r => setTimeout(r, 1000));
-
-  // 2 — Bildirildi (yeşil)
-  txt.textContent = '✓ Bildirildi';
-  btn.style.background = 'linear-gradient(135deg,#1a9a52,#15803d)';
+  // Bildirildi
+  kart.style.background = '#0f4c2a';
+  dot.style.background = '#22c55e';
+  lbl.textContent = '✓ Bildirildi';
+  badge.textContent = count + ' KİŞİ';
   info.textContent = count + ' kişi bildirdi — eşik aşılırsa uyarı yapılacak.';
 
-  // 3 saniye sonra sıfırla
   setTimeout(() => {
-    icon.style.display = '';
-    txt.textContent = 'Deprem Hissettim';
-    btn.style.background = '';
-    btn.disabled = false;
+    kart.style.background = '#1c2030';
+    dot.style.background = '#e03535';
+    lbl.textContent = 'Deprem Hissettim';
+    badge.textContent = 'BILDIR';
+    info.textContent = 'Gereksiz kullananlar kalıcı olarak engellenir.';
+    kart.style.pointerEvents = '';
     hissettimCooldown = false;
-    info.textContent = '';
   }, 3000);
 }
 
@@ -895,14 +904,16 @@ async function openPanel(cityId, cityName) {
   await fetchKandilli();
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
-  const hBtn = document.getElementById('hissettimBtn');
-  hBtn.disabled = false;
-  hBtn.style.background = '';
-  const hTxt = document.getElementById('hissettimTxt');
-  const hIcon = document.getElementById('hissettimIcon');
-  if (hTxt) { hTxt.textContent = 'Deprem Hissettim'; }
-  if (hIcon) { hIcon.style.display = ''; }
-  document.getElementById('hissettimInfo').textContent = '';
+  const hKart = document.getElementById('hisset-kart');
+  const hLbl  = document.getElementById('hisset-lbl');
+  const hDot  = document.getElementById('hisset-dot');
+  const hBadge = document.getElementById('hisset-badge');
+  const hInfo = document.getElementById('hisset-info');
+  if (hKart)  { hKart.style.background = '#1c2030'; hKart.style.pointerEvents = ''; }
+  if (hLbl)   { hLbl.textContent = 'Deprem Hissettim'; }
+  if (hDot)   { hDot.style.background = '#e03535'; }
+  if (hBadge) { hBadge.textContent = 'BILDIR'; }
+  if (hInfo)  { hInfo.textContent = 'Gereksiz kullananlar kalıcı olarak engellenir.'; }
   hissettimCooldown = false;
   document.getElementById('panel').classList.add('open');
   document.getElementById('mobOverlay').classList.add('on');
