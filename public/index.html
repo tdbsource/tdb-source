@@ -43,7 +43,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .logo{display:flex;flex-direction:column;align-items:flex-start;gap:0px}
 .logo-name{font-size:21px;font-weight:800;letter-spacing:-.025em;color:var(--text)}
 .logo-gen{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(90deg,#7c3aed,#1a1a2e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-top:1px}
-.hissettim-btn{width:100%;padding:11px;margin-top:10px;background:linear-gradient(135deg,#e03535,#b91c1c);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;font-family:inherit}
+.hissettim-btn{width:100%;padding:11px;margin-top:10px;background:linear-gradient(135deg,#e03535,#b91c1c);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;font-family:inherit;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;box-sizing:border-box;}
 .hissettim-btn:hover{opacity:.88}
 .hissettim-btn:disabled{opacity:.45;cursor:not-allowed}
 .hissettim-btn.sent{background:linear-gradient(135deg,#1a9a52,#15803d)}
@@ -298,9 +298,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="ai-tag"><div class="ai-ico">✦</div><span class="ai-tag-lbl">Source Gen 8 Analiz</span></div>
         <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
         <div class="risk-pill" id="rPill"></div>
-        <button class="hissettim-btn" id="hissettimBtn" onclick="hissettimBas()">
+        <div class="hissettim-btn" id="hissettimBtn" onclick="hissettimBas()">
           <span id="hissettimTxt">Deprem Hissettim</span>
-        </button>
+        </div>
         <div class="hissettim-info" id="hissettimInfo"></div>
         <div class="hissettim-uyari">Gereksiz kullananlar kalıcı olarak engellenir.</div>
       </div>
@@ -839,7 +839,8 @@ async function hissettimBas() {
   }
 
   hissettimCooldown = true;
-  btn.disabled = true;
+  btn.style.pointerEvents = 'none';
+  btn.style.opacity = '0.6';
   document.getElementById('hissettimTxt').textContent = 'Gönderiliyor...';
 
   try {
@@ -851,7 +852,8 @@ async function hissettimBas() {
     const d = await r.json();
 
     if (d.status === 'cooldown') {
-      btn.disabled = false;
+      btn.style.pointerEvents = '';
+      btn.style.opacity = '';
       hissettimCooldown = false;
       info.textContent = 'Az önce bildirdin, biraz bekle.';
       return;
@@ -868,6 +870,8 @@ async function hissettimBas() {
     hissettimCooldown = false;
     btn.disabled = false;
     btn.classList.remove('sent');
+    btn.style.pointerEvents = '';
+    btn.style.opacity = '';
     document.getElementById('hissettimTxt').textContent = 'Deprem Hissettim';
     info.textContent = '';
   }, 3000);
@@ -887,7 +891,8 @@ async function openPanel(cityId, cityName) {
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
   document.getElementById('hissettimBtn').classList.remove('sent');
-  document.getElementById('hissettimBtn').disabled = false;
+  document.getElementById('hissettimBtn').style.pointerEvents = '';
+  document.getElementById('hissettimBtn').style.opacity = '';
   document.getElementById('hissettimTxt').textContent = 'Deprem Hissettim';
   document.getElementById('hissettimInfo').textContent = '';
   hissettimCooldown = false;
