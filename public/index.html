@@ -253,12 +253,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 }
 .sohbet-btn:hover{transform:scale(1.08)}
 .sohbet-badge{
-  position:absolute;top:-4px;right:-4px;
-  background:#e03535;color:#fff;
-  font-size:9px;font-weight:700;
-  width:16px;height:16px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
+  position:absolute;top:-3px;right:-3px;
+  background:#e03535;
+  width:12px;height:12px;border-radius:50%;
   display:none;
+  border:2px solid #fff;
 }
 .sohbet-panel{
   position:fixed;
@@ -333,13 +332,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .s-satir.benim .s-zaman{color:rgba(255,255,255,0.6);text-align:right;}
 .s-txt{font-size:12px;line-height:1.5;word-break:break-word;color:#222;}
 .s-satir.benim .s-txt{color:#fff;}
-.s-engelle{
-  position:absolute;top:4px;right:6px;
-  background:none;border:none;font-size:10px;
-  color:#ccc;cursor:pointer;padding:0;
+.s-engelle-btn{
+  background:rgba(220,40,40,0.12);
+  border:0.5px solid rgba(220,40,40,0.3);
+  border-radius:6px;
+  font-size:12px;
+  color:#dc2626;cursor:pointer;
+  padding:4px 6px;
+  flex-shrink:0;
+  align-self:center;
   display:none;
 }
-.s-mesaj:hover .s-engelle{display:block}
+.s-satir:hover .s-engelle-btn{display:block;}
 .alinti-bar{
   background:rgba(251,146,60,0.15);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -1391,6 +1395,7 @@ function sohbetAc() {
   document.getElementById('sohbetKullanici').textContent = 'Sen: ' + myAdi + ' | ID: ' + myId;
   yeniMesajSayisi = 0;
   document.getElementById('sohbetBadge').style.display = 'none';
+  document.getElementById('sohbetBadge').textContent = '';
   mesajlariYukle();
   // Polling başlat — 2 saniyede bir kontrol
   if (!pollingInterval) {
@@ -1432,27 +1437,27 @@ function mesajHTML(m, alintMi) {
   const benim   = m.kullanici_id === myId;
   const admin   = isAdmin(m.kullanici_adi, m.kullanici_id);
   const engelle = (!benim && ADMIN_IDS.includes(myId))
-    ? `<button class="s-engelle" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
+    ? `<button class="s-engelle-btn" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
     : '';
   const alintHTML = m.alinti_adi
     ? `<div class="s-alinti"><b>${m.alinti_adi}:</b> ${(m.alinti_txt||'').replace(/</g,'&lt;').slice(0,60)}</div>`
     : '';
   const alintUyari = alintMi ? ' alinti-uyari' : '';
-  return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}">
-    ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${m.kullanici_adi}${admin?' 👑':''}</span></div>` : ''}
-    <div class="s-mesaj${admin?' admin-msg':''}${alintUyari}" data-id="${m.id}"
-      oncontextmenu="event.preventDefault();mesajaBasiliTut(${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
-      ontouchstart="uzunBas(this,${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
-      ontouchend="kısaBas()">
-      ${alintHTML}
-      <div class="s-txt">${m.mesaj.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-      ${engelle}
+  return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}" style="display:flex;align-items:flex-end;gap:6px;">
+    <div style="display:flex;flex-direction:column;${benim?'align-items:flex-end;margin-left:auto;':'max-width:80%;'}">
+      ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${m.kullanici_adi}${admin?' 👑':''}</span></div>` : ''}
+      <div class="s-mesaj${admin?' admin-msg':''}${alintUyari}" data-id="${m.id}"
+        oncontextmenu="event.preventDefault();mesajaBasiliTut(${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
+        ontouchstart="uzunBas(this,${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
+        ontouchend="kısaBas()">
+        ${alintHTML}
+        <div class="s-txt">${m.mesaj.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      </div>
+      <div class="s-zaman">${zamanFormat(m.olusturuldu)}</div>
     </div>
-    <div class="s-zaman">${zamanFormat(m.olusturuldu)}</div>
+    ${engelle}
   </div>`;
 }
-
-let uzunBasTimer = null;
 function uzunBas(el, m) {
   uzunBasTimer = setTimeout(() => mesajaBasiliTut(m), 500);
 }
@@ -1510,10 +1515,8 @@ async function yeniMesajlariKontrolEt() {
 
   // Badge güncelle
   if (!sohbetAcik && data.length > 0) {
-    yeniMesajSayisi += data.length;
     const badge = document.getElementById('sohbetBadge');
-    badge.style.display = 'flex';
-    badge.textContent = yeniMesajSayisi > 9 ? '9+' : yeniMesajSayisi;
+    badge.style.display = 'block';
   }
 }
 
@@ -1546,11 +1549,13 @@ async function mesajGonder() {
 
 async function engelleKullanici(uid, adi) {
   if (!ADMIN_IDS.includes(myId)) return;
-  if (!confirm(adi + ' engellensin mi?')) return;
+  if (!confirm(adi + ' adlı kullanıcıyı engellemek istediğinizden emin misiniz?')) return;
   await sb.from('engelliler').insert({ kullanici_id: uid });
   await sb.from('mesajlar').update({ engellendi: true }).eq('kullanici_id', uid);
-  document.querySelectorAll(`.s-mesaj[data-id]`).forEach(el => {
-    if (el.querySelector('.s-isim')?.textContent.trim().replace('⭐ ','') === adi) el.remove();
+  // O kullanıcının tüm mesajlarını ekrandan kaldır
+  document.querySelectorAll('.s-satir').forEach(el => {
+    const isim = el.querySelector('.s-isim');
+    if (isim && isim.textContent.replace(' 👑','').trim() === adi) el.remove();
   });
 }
 
