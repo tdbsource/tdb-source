@@ -822,36 +822,21 @@ async function hissettimBas() {
   const btn  = document.getElementById('hissettimBtn');
   const info = document.getElementById('hissettimInfo');
 
-  // OneSignal subscription ID al — birden fazla yöntem dene
+  // OneSignal subscription ID — senkron okuma
   let subId = null;
   try {
-    if (window.OneSignal) {
-      // Yeni SDK
-      subId = OneSignal.User?.PushSubscription?.id;
-      // Eski SDK fallback
-      if (!subId) subId = await OneSignal.getUserId?.();
-      // Alternatif
-      if (!subId) subId = await OneSignal.getSubscriptionId?.();
-    }
+    // v16 SDK
+    subId = window.OneSignal?.User?.PushSubscription?.id || null;
   } catch(e) {}
 
+  // Bulunamazsa anonim ID üret — bildirim aboneliği zorunlu değil
   if (!subId) {
-    // Abone değil — izin iste
-    info.textContent = 'Bildirim izni veriliyor...';
-    try {
-      if (window.OneSignal) {
-        await OneSignal.Notifications?.requestPermission?.();
-        await new Promise(r => setTimeout(r, 1500));
-        subId = OneSignal.User?.PushSubscription?.id;
-        if (!subId) subId = await OneSignal.getUserId?.();
-      }
-    } catch(e) {}
-  }
-
-  if (!subId) {
-    info.textContent = 'Bildirim izni gerekiyor. Ayarlardan izin ver.';
-    hissettimCooldown = false;
-    return;
+    let anonId = localStorage.getItem('tdb_anon_id');
+    if (!anonId) {
+      anonId = 'anon_' + Math.random().toString(36).slice(2) + '_' + Date.now();
+      localStorage.setItem('tdb_anon_id', anonId);
+    }
+    subId = anonId;
   }
 
   hissettimCooldown = true;
