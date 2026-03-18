@@ -99,6 +99,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 @keyframes newquake{0%,100%{outline:2px solid #e03535;outline-offset:2px;box-shadow:0 0 8px #e03535}50%{outline:2px solid transparent;box-shadow:none}}
 .prov-pill{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,0.75);border:1.5px solid #111;cursor:pointer;transition:all .15s ease;}
 .prov-pill:hover{background:rgba(255,255,255,1);border-color:#000;transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.r-btn{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;padding:4px 10px;border-radius:5px;border:1px solid rgba(0,0,0,0.15);cursor:pointer;flex-shrink:0;transition:all .2s ease;}
+.r-btn.open{background:rgba(220,40,40,0.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#b91c1c;border-color:rgba(185,28,28,0.35);}
+.r-btn.closed{background:rgba(22,163,74,0.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#15803d;border-color:rgba(21,128,61,0.35);}
 .prov-pill.active{background:rgba(192,57,43,.12);border-color:rgba(192,57,43,.35)}
 .prov-name{font-size:11px;font-weight:600;color:#111;white-space:nowrap;}
 .prov-pill.active .prov-name{color:var(--red)}
@@ -1133,15 +1136,19 @@ REGIONS.forEach((reg, regIdx) => {
   const titleText = document.createElement('span');
   titleText.textContent = reg.title;
 
-  const arrow = document.createElement('span');
-  arrow.className = 'r-arrow';
-  arrow.textContent = '⌄';
+  const btn = document.createElement('span');
+  const isInitOpen = regIdx <= 1;
+  btn.className = 'r-btn ' + (isInitOpen ? 'open' : 'closed');
+  btn.textContent = isInitOpen ? 'Kapat' : 'Genişlet';
 
   title.appendChild(titleText);
-  title.appendChild(arrow);
+  title.appendChild(btn);
 
   title.addEventListener('click', () => {
+    const opening = !card.classList.contains('open');
     card.classList.toggle('open');
+    btn.className = 'r-btn ' + (opening ? 'open' : 'closed');
+    btn.textContent = opening ? 'Kapat' : 'Genişlet';
   });
 
   card.appendChild(title);
