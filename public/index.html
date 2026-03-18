@@ -851,35 +851,27 @@ async function hissettimBas() {
     });
     const d = await r.json();
 
-    if (d.status === 'notified') {
-      btn.classList.add('sent');
-      btn.innerHTML = '✓ Bildirim Gönderildi';
-      info.textContent = 'Yeterli kullanıcı bildirdi — tüm abonelere bildirim gitti.';
-    } else if (d.status === 'cooldown') {
-      info.textContent = 'Az önce bildirdin, biraz bekle.';
+    if (d.status === 'cooldown') {
       btn.disabled = false;
       hissettimCooldown = false;
+      info.textContent = 'Az önce bildirdin, biraz bekle.';
       return;
-    } else {
-      btn.classList.add('sent');
-      btn.innerHTML = '✓ Bildirildi';
-      info.textContent = d.count + ' kullanıcı bildirdi. Eşiğe ulaşınca bildirim gidecek.';
     }
-  } catch(e) {
-    info.textContent = 'Bağlantı hatası, tekrar dene.';
-    btn.disabled = false;
-    hissettimCooldown = false;
-    return;
-  }
+  } catch(e) {}
 
-  // 30 sn sonra butonu sıfırla
+  // Her durumda anında "Bildirildi" göster
+  btn.classList.add('sent');
+  btn.innerHTML = '✓ Bildirildi';
+  info.textContent = '';
+
+  // 3 saniye sonra normale dön
   setTimeout(() => {
     hissettimCooldown = false;
     btn.disabled = false;
     btn.classList.remove('sent');
     btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Deprem Hissettim';
     info.textContent = '';
-  }, 30000);
+  }, 3000);
 }
 
 // ── PANEL AÇ ──────────────────────────────────────────────────────────────
