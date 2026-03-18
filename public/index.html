@@ -299,8 +299,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
         <div class="risk-pill" id="rPill"></div>
         <button class="hissettim-btn" id="hissettimBtn" onclick="hissettimBas()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-          Deprem Hissettim
+          <span id="hissettimTxt">Deprem Hissettim</span>
         </button>
         <div class="hissettim-info" id="hissettimInfo"></div>
         <div class="hissettim-uyari">Gereksiz kullananlar kalıcı olarak engellenir.</div>
@@ -841,7 +840,7 @@ async function hissettimBas() {
 
   hissettimCooldown = true;
   btn.disabled = true;
-  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Gönderiliyor...';
+  document.getElementById('hissettimTxt').textContent = 'Gönderiliyor...';
 
   try {
     const r = await fetch('https://tdb-source.vercel.app/api/hissettim', {
@@ -861,7 +860,7 @@ async function hissettimBas() {
 
   // Her durumda anında "Bildirildi" göster
   btn.classList.add('sent');
-  btn.innerHTML = '✓ Bildirildi';
+  document.getElementById('hissettimTxt').textContent = '✓ Bildirildi';
   info.textContent = '';
 
   // 3 saniye sonra normale dön
@@ -869,7 +868,7 @@ async function hissettimBas() {
     hissettimCooldown = false;
     btn.disabled = false;
     btn.classList.remove('sent');
-    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Deprem Hissettim';
+    document.getElementById('hissettimTxt').textContent = 'Deprem Hissettim';
     info.textContent = '';
   }, 3000);
 }
@@ -889,7 +888,7 @@ async function openPanel(cityId, cityName) {
   document.getElementById('rPill').textContent = '';
   document.getElementById('hissettimBtn').classList.remove('sent');
   document.getElementById('hissettimBtn').disabled = false;
-  document.getElementById('hissettimBtn').innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Deprem Hissettim';
+  document.getElementById('hissettimTxt').textContent = 'Deprem Hissettim';
   document.getElementById('hissettimInfo').textContent = '';
   hissettimCooldown = false;
   document.getElementById('panel').classList.add('open');
