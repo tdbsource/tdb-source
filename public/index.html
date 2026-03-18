@@ -836,7 +836,15 @@ async function hissettimBas() {
   const info  = document.getElementById('hisset-info');
 
   let subId = null;
-  try { subId = window.OneSignal?.User?.PushSubscription?.id || null; } catch(e) {}
+  try {
+    // Önce OneSignal subID dene — birkaç kez bekleyerek
+    for (let i = 0; i < 3; i++) {
+      subId = window.OneSignal?.User?.PushSubscription?.id || null;
+      if (subId) break;
+      await new Promise(r => setTimeout(r, 300));
+    }
+  } catch(e) {}
+  // Bulunamazsa localStorage anonim ID — fallback
   if (!subId) {
     let a = localStorage.getItem('tdb_anon_id');
     if (!a) { a = 'anon_' + Math.random().toString(36).slice(2); localStorage.setItem('tdb_anon_id', a); }
@@ -1266,7 +1274,7 @@ setInterval(fetchKandilli, 30 * 1000);
 </script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-  windwindow.OneSignal = window.OneSignal || [];
+  window.OneSignal = window.OneSignal || [];
   OneSignal.push(function() {
     OneSignal.init({
       appId: "6629a189-68c9-4af9-9790-912b49ca6c9a",
