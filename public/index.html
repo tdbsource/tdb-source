@@ -89,7 +89,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .region-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.8)}
 .region-card::-webkit-scrollbar{width:3px}
 .region-card::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
-.region-title{font-family:'Syne',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#000;padding:8px 10px;min-width:88px;width:88px;flex-shrink:0;border-right:0.5px solid rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;text-align:center;cursor:default;background:rgba(255,255,255,0.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-self:stretch;}
+.region-title{font-family:'Syne',sans-serif;font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#000;padding:6px 8px;min-width:80px;width:80px;flex-shrink:0;border-right:0.5px solid rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;text-align:center;word-break:break-word;hyphens:auto;line-height:1.3;cursor:default;background:rgba(255,255,255,0.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-self:stretch;}
 .prov-list{display:flex;flex-wrap:wrap;gap:3px;padding:6px 8px;flex:1;}
 .prov-section-header{flex-basis:100%;position:static !important;margin-top:6px !important;}
 .akdeniz-header{
@@ -185,10 +185,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   /* Tüm blur kaldır */
   *{backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
 
-  /* Scroll yok, tam ekran */
+  /* Tam ekran, map-area scroll yapıyor */
   html,body{overflow:hidden;height:100vh;height:100dvh}
   .app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-  .body{flex:1;min-height:0;overflow:hidden}
+  .body{flex:1;min-height:0;overflow:hidden;display:flex;}
 
   /* Ticker */
   .ticker{height:24px;flex-shrink:0;background:rgba(255,255,255,0.97)}
@@ -208,16 +208,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   .hdrop{min-width:190px;right:-6px}
 
   /* Map area mobil */
-  .map-area{flex:1;padding:6px 8px;min-height:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
+  .map-area{flex:1;padding:4px 6px;min-height:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;-webkit-overflow-scrolling:touch;}
   .map-area::before{display:none}
 
-  /* Accordion mobilde de aynı */
-  .regions{width:100%;max-width:100%;border-radius:8px;overflow:hidden;}
-  .region-card{flex-direction:column;}
-  .region-title{width:100%;min-width:unset;border-right:none;border-bottom:0.5px solid rgba(0,0,0,0.08);justify-content:flex-start;text-align:left;padding:6px 10px;font-size:8px;}
-  .prov-list{padding:5px 8px;}
-  .prov-pill{padding:3px 7px;}
-  .prov-name{font-size:10px;}
+  .regions{width:100%;max-width:100%;border-radius:8px;overflow:visible;}
+  .region-card{flex-direction:row;min-height:0;}
+  .region-title{min-width:64px;width:64px;font-size:7.5px;padding:5px 4px;letter-spacing:.05em;word-break:break-word;line-height:1.2;border-right:0.5px solid rgba(0,0,0,0.1);border-bottom:none;justify-content:center;text-align:center;}
+  .prov-list{padding:4px 6px;gap:2px;}
+  .prov-pill{padding:2px 5px;}
+  .prov-name{font-size:9.5px;}
+  .rdot{width:4px;height:4px;}
 
   /* Panel — alttan drawer */
   .panel{
