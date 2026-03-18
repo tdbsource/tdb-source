@@ -261,19 +261,22 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   display:none;
 }
 .sohbet-panel{
-  position:fixed;bottom:0;right:0;z-index:600;
-  width:340px;max-width:100vw;
-  height:520px;max-height:85dvh;
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0.92);
+  z-index:600;
+  width:380px;max-width:95vw;
+  height:540px;max-height:85dvh;
   background:rgba(220,224,230,0.97);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-radius:14px 14px 0 0;
-  border-top:1px solid rgba(255,255,255,0.6);
-  box-shadow:0 -4px 24px rgba(0,0,0,0.15);
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.6);
+  box-shadow:0 8px 40px rgba(0,0,0,0.25);
   display:flex;flex-direction:column;
-  transform:translateY(100%);
-  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  opacity:0;pointer-events:none;
+  transition:transform .25s cubic-bezier(.4,0,.2,1), opacity .25s;
 }
-.sohbet-panel.open{transform:translateY(0)}
+.sohbet-panel.open{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:all;}
 .sohbet-header{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 16px;
@@ -380,26 +383,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <div class="body">
   <div class="map-area" style="display:flex;flex-direction:column;">
     <div class="regions" id="regions" style="flex:1;min-height:0;"></div>
-        <!-- SOHBET BUTONU -->
+        <!-- SOHBET BUTONU - fixed sağ altta -->
     <button class="sohbet-btn" id="sohbetBtn" onclick="sohbetAc()">
       <span class="sohbet-badge" id="sohbetBadge"></span>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </button>
-
-    <!-- SOHBET PANELİ -->
-    <div class="sohbet-panel" id="sohbetPanel">
-      <div class="sohbet-header">
-        <span class="sohbet-baslik">💬 Anlık Sohbet</span>
-        <button class="sohbet-kapat" onclick="sohbetKapat()">✕</button>
-      </div>
-      <div class="sohbet-mesajlar" id="sohbetMesajlar">
-        <div style="text-align:center;padding:20px;color:#aaa;font-size:11px;">Yükleniyor...</div>
-      </div>
-      <div class="sohbet-alt" id="sohbetAlt">
-        <input class="sohbet-input" id="sohbetInput" placeholder="Mesajını yaz..." maxlength="200" onkeydown="if(event.key==='Enter')mesajGonder()"/>
-        <button class="sohbet-gonder" onclick="mesajGonder()">Gönder</button>
-      </div>
-    </div>
 
     <div style="flex-shrink:0;box-sizing:border-box;width:calc(100% - 40px);margin:6px auto 6px;background:linear-gradient(135deg,#0a0a1a 0%,#0d2a6e 50%,#050d1f 100%);border:2px solid #111;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;min-height:72px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
       <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(90deg,#a78bfa,#38bdf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Reklam Alan&#305;</div>
@@ -1404,9 +1392,10 @@ setInterval(fetchKandilli, 30 * 1000);
   });
 
 // ── SOHBET SİSTEMİ ────────────────────────────────────────────────────────
-const SUPABASE_URL  = 'https://nskwxgdiehvrzzznhljp.supabase.co';
-const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5za3d4Z2RpZWh2cnp6em5obGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDcxNjYsImV4cCI6MjA4OTQyMzE2Nn0.7uWBf8_oI-Fwg-HCawL-Jmqw0zzeJHOg3BJlAZeWAT0';
-const ADMIN_IDS     = []; // Admin kullanici_id'lerini buraya ekle
+const SUPABASE_URL = 'https://nskwxgdiehvrzzznhljp.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5za3d4Z2RpZWh2cnp6em5obGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDcxNjYsImV4cCI6MjA4OTQyMzE2Nn0.7uWBf8_oI-Fwg-HCawL-Jmqw0zzeJHOg3BJlAZeWAT0';
+const ADMIN_ADI    = 'BURAYA_ADMIN_ADI'; // Sisteme girip öğrendiğin adını yaz
+
 const sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Kullanıcı kimliği
@@ -1419,14 +1408,13 @@ function getUserId() {
   return uid;
 }
 
-// Rastgele kullanıcı adı — değiştirilemez
-const ISIMLER = ['Sismik','Fay','Richter','Tektonik','Plaka','Seismos','Deprem','Mercalli','Volkan','Kabuk','Mantle','Magma','Sismos','Artçı','Öncü'];
+// 3 karakterlik rastgele kullanıcı adı: A01-Z99
 function getUserAdi() {
   let adi = localStorage.getItem('tdb_adi');
   if (!adi) {
-    const isim = ISIMLER[Math.floor(Math.random() * ISIMLER.length)];
-    const sayi = Math.floor(Math.random() * 9000) + 1000;
-    adi = isim + sayi;
+    const harf = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+    const sayi = String(Math.floor(Math.random() * 99) + 1).padStart(2, '0');
+    adi = harf + sayi;
     localStorage.setItem('tdb_adi', adi);
   }
   return adi;
@@ -1436,64 +1424,98 @@ const myId  = getUserId();
 const myAdi = getUserAdi();
 let sohbetAcik = false;
 let yeniMesajSayisi = 0;
+let sonMesajId = 0;
+let pollingInterval = null;
 
 function sohbetAc() {
   sohbetAcik = true;
   document.getElementById('sohbetPanel').classList.add('open');
+  document.getElementById('sohbetOverlay').style.display = 'block';
+  document.getElementById('sohbetKullanici').textContent = 'Sen: ' + myAdi;
   yeniMesajSayisi = 0;
-  const badge = document.getElementById('sohbetBadge');
-  badge.style.display = 'none';
+  document.getElementById('sohbetBadge').style.display = 'none';
   mesajlariYukle();
+  // Polling başlat — 2 saniyede bir kontrol
+  if (!pollingInterval) {
+    pollingInterval = setInterval(yeniMesajlariKontrolEt, 2000);
+  }
 }
 
 function sohbetKapat() {
   sohbetAcik = false;
   document.getElementById('sohbetPanel').classList.remove('open');
+  document.getElementById('sohbetOverlay').style.display = 'none';
 }
 
 function zamanFormat(ts) {
-  const d = new Date(ts);
-  return d.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+  return new Date(ts).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function isAdmin(adi) {
+  return adi === ADMIN_ADI;
 }
 
 function mesajHTML(m) {
-  const benim = m.kullanici_id === myId;
-  const isAdmin = ADMIN_IDS.includes(m.kullanici_id);
-  const engelleBtnHTML = !benim ? `<button class="s-engelle" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>` : '';
-  return `<div class="s-mesaj${benim?' benim':''}${isAdmin?' admin-msg':''}" data-uid="${m.kullanici_id}">
+  const benim   = m.kullanici_id === myId;
+  const admin   = isAdmin(m.kullanici_adi);
+  const engelle = (!benim && isAdmin(myAdi))
+    ? `<button class="s-engelle" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
+    : '';
+  return `<div class="s-mesaj${benim?' benim':''}${admin?' admin-msg':''}" data-id="${m.id}">
     <div class="s-ust">
-      <span class="s-isim${isAdmin?' admin-isim':''}">${isAdmin?'⭐ ':''} ${m.kullanici_adi}</span>
+      <span class="s-isim${admin?' admin-isim':''}">${admin?'⭐ ':''}${m.kullanici_adi}</span>
       <span class="s-zaman">${zamanFormat(m.olusturuldu)}</span>
     </div>
     <div class="s-txt">${m.mesaj.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-    ${engelleBtnHTML}
+    ${engelle}
   </div>`;
 }
 
 async function mesajlariYukle() {
   if (!sb) return;
-  const { data } = await sb.from('mesajlar')
+  const { data, error } = await sb.from('mesajlar')
     .select('*')
     .eq('engellendi', false)
     .order('olusturuldu', {ascending: true})
     .limit(100);
+  if (!data || error) return;
 
-  if (!data) return;
-
-  // Engelli kullanıcıları filtrele
-  const { data: engeller } = await sb.from('engelliler').select('kullanici_id');
-  const engelliler = new Set((engeller||[]).map(e => e.kullanici_id));
+  const { data: eng } = await sb.from('engelliler').select('kullanici_id');
+  const engSet = new Set((eng||[]).map(e => e.kullanici_id));
+  const filtreli = data.filter(m => !engSet.has(m.kullanici_id));
 
   const el = document.getElementById('sohbetMesajlar');
-  const mesajlar = data.filter(m => !engelliler.has(m.kullanici_id));
-
-  if (mesajlar.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:11px;font-family:JetBrains Mono,monospace;">Henüz mesaj yok. İlk sen yaz!</div>';
+  if (filtreli.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:11px;font-family:'JetBrains Mono',monospace;">Henüz mesaj yok. İlk sen yaz!</div>';
     return;
   }
-
-  el.innerHTML = mesajlar.map(mesajHTML).join('');
+  el.innerHTML = filtreli.map(mesajHTML).join('');
   el.scrollTop = el.scrollHeight;
+  if (filtreli.length > 0) sonMesajId = filtreli[filtreli.length-1].id;
+}
+
+async function yeniMesajlariKontrolEt() {
+  if (!sb || !sohbetAcik) return;
+  const { data } = await sb.from('mesajlar')
+    .select('*')
+    .eq('engellendi', false)
+    .gt('id', sonMesajId)
+    .order('olusturuldu', {ascending: true});
+  if (!data || data.length === 0) return;
+
+  const { data: eng } = await sb.from('engelliler').select('kullanici_id');
+  const engSet = new Set((eng||[]).map(e => e.kullanici_id));
+
+  const el = document.getElementById('sohbetMesajlar');
+  const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+
+  data.filter(m => !engSet.has(m.kullanici_id)).forEach(m => {
+    if (document.querySelector(`.s-mesaj[data-id="${m.id}"]`)) return;
+    el.innerHTML += mesajHTML(m);
+    sonMesajId = Math.max(sonMesajId, m.id);
+  });
+
+  if (atBottom) el.scrollTop = el.scrollHeight;
 }
 
 async function mesajGonder() {
@@ -1502,59 +1524,43 @@ async function mesajGonder() {
   const mesaj = input.value.trim();
   if (!mesaj) return;
 
-  // Abone kontrolü
+  // Abone veya anonim ID kontrolü
   let subId = null;
   try { subId = window.OneSignal?.User?.PushSubscription?.id || null; } catch(e) {}
   const anonId = localStorage.getItem('tdb_anon_id');
-
   if (!subId && !anonId) {
     document.getElementById('sohbetAlt').innerHTML = '<div class="s-abone-uyari">Mesaj göndermek için bildirim abonesi olman gerekiyor.</div>';
     return;
   }
 
   input.value = '';
-  await sb.from('mesajlar').insert({
+  const { data } = await sb.from('mesajlar').insert({
     kullanici_id: myId,
     kullanici_adi: myAdi,
     mesaj: mesaj,
     engellendi: false
-  });
+  }).select();
+
+  // Gönderdiğin mesajı anında ekle
+  if (data && data[0]) {
+    const el = document.getElementById('sohbetMesajlar');
+    el.innerHTML += mesajHTML(data[0]);
+    el.scrollTop = el.scrollHeight;
+    sonMesajId = Math.max(sonMesajId, data[0].id);
+  }
 }
 
 async function engelleKullanici(uid, adi) {
-  if (!ADMIN_IDS.includes(myId)) return;
-  if (!confirm(adi + ' kullanıcısını engellemek istiyor musun?')) return;
+  if (!isAdmin(myAdi)) return;
+  if (!confirm(adi + ' engellensin mi?')) return;
   await sb.from('engelliler').insert({ kullanici_id: uid });
   await sb.from('mesajlar').update({ engellendi: true }).eq('kullanici_id', uid);
-  mesajlariYukle();
+  document.querySelectorAll(`.s-mesaj[data-id]`).forEach(el => {
+    if (el.querySelector('.s-isim')?.textContent.trim().replace('⭐ ','') === adi) el.remove();
+  });
 }
 
-// Gerçek zamanlı güncelleme
-if (sb) {
-  sb.channel('mesajlar')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mesajlar' }, async (payload) => {
-      const m = payload.new;
-      if (m.engellendi) return;
-      const { data: engeller } = await sb.from('engelliler').select('kullanici_id');
-      const engelliler = new Set((engeller||[]).map(e => e.kullanici_id));
-      if (engelliler.has(m.kullanici_id)) return;
-
-      const el = document.getElementById('sohbetMesajlar');
-      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
-      el.innerHTML += mesajHTML(m);
-      if (atBottom) el.scrollTop = el.scrollHeight;
-
-      if (!sohbetAcik) {
-        yeniMesajSayisi++;
-        const badge = document.getElementById('sohbetBadge');
-        badge.style.display = 'flex';
-        badge.textContent = yeniMesajSayisi > 9 ? '9+' : yeniMesajSayisi;
-      }
-    })
-    .subscribe();
-}
-
-  // Sayfa açılınca 3 saniye sonra bildirim izni iste
+  // Sayfa açılınca 3 saniye sonra bildirim izni iste  // Sayfa açılınca 3 saniye sonra bildirim izni iste
   setTimeout(async () => {
     try {
       if (window.OneSignal && Notification.permission === 'default') {
@@ -1563,5 +1569,23 @@ if (sb) {
     } catch(e) {}
   }, 3000);
 </script>
+  <!-- SOHBET PANELİ - tam ekran overlay -->
+  <div id="sohbetOverlay" onclick="sohbetKapat()" style="display:none;position:fixed;inset:0;z-index:599;background:rgba(0,0,0,0.3);"></div>
+  <div class="sohbet-panel" id="sohbetPanel">
+    <div class="sohbet-header">
+      <div>
+        <span class="sohbet-baslik">💬 Anlık Sohbet</span>
+        <span id="sohbetKullanici" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#888;margin-left:8px;"></span>
+      </div>
+      <button class="sohbet-kapat" onclick="sohbetKapat()">✕</button>
+    </div>
+    <div class="sohbet-mesajlar" id="sohbetMesajlar">
+      <div style="text-align:center;padding:20px;color:#aaa;font-size:11px;">Yükleniyor...</div>
+    </div>
+    <div class="sohbet-alt" id="sohbetAlt">
+      <input class="sohbet-input" id="sohbetInput" placeholder="Mesajını yaz..." maxlength="200" onkeydown="if(event.key==='Enter')mesajGonder()"/>
+      <button class="sohbet-gonder" onclick="mesajGonder()">Gönder</button>
+    </div>
+  </div>
 </body>
 </html>
