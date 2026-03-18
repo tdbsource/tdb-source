@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>TDB Source — Generation 8</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1c2030">
@@ -293,27 +293,59 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 }
 .sohbet-mesajlar::-webkit-scrollbar{width:3px}
 .sohbet-mesajlar::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:2px}
+.sohbet-mesajlar{display:flex;flex-direction:column;gap:4px;padding:10px 12px;}
+.s-satir{display:flex;flex-direction:column;max-width:80%;}
+.s-satir.benim{align-self:flex-end;align-items:flex-end;}
+.s-satir.diger{align-self:flex-start;align-items:flex-start;}
 .s-mesaj{
-  display:flex;flex-direction:column;gap:2px;
-  padding:7px 10px;border-radius:8px;
-  background:rgba(255,255,255,0.65);
+  padding:7px 11px;border-radius:14px;
+  background:rgba(255,255,255,0.9);
   border:0.5px solid rgba(0,0,0,0.08);
   position:relative;
+  cursor:pointer;
+  user-select:none;-webkit-user-select:none;
 }
-.s-mesaj.benim{background:rgba(26,86,219,0.12);border-color:rgba(26,86,219,0.2);}
-.s-mesaj.admin-msg{background:rgba(245,200,0,0.12);border-color:rgba(245,200,0,0.3);}
-.s-ust{display:flex;align-items:center;gap:6px;}
+.s-satir.benim .s-mesaj{
+  background:rgba(26,86,219,0.85);
+  border-color:transparent;
+  border-radius:14px 14px 4px 14px;
+}
+.s-satir.diger .s-mesaj{
+  border-radius:14px 14px 14px 4px;
+}
+.s-mesaj.admin-msg{background:rgba(245,200,0,0.2);border-color:rgba(245,200,0,0.4);}
+.s-mesaj.alinti-uyari{background:rgba(251,146,60,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-color:rgba(251,146,60,0.5);}
+.s-alinti{
+  background:rgba(0,0,0,0.08);border-left:3px solid rgba(0,0,0,0.2);
+  border-radius:4px;padding:4px 8px;margin-bottom:5px;
+  font-size:10px;color:rgba(0,0,0,0.5);line-height:1.4;
+}
+.s-satir.benim .s-alinti{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.7);}
+.s-ust{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
 .s-isim{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:#333;}
+.s-satir.benim .s-isim{display:none;}
 .s-isim.admin-isim{color:#b45309;}
-.s-zaman{font-family:'JetBrains Mono',monospace;font-size:8px;color:#aaa;}
-.s-txt{font-size:12px;color:#222;line-height:1.5;word-break:break-word;}
+.s-zaman{font-family:'JetBrains Mono',monospace;font-size:8px;color:#aaa;margin-top:2px;padding:0 2px;}
+.s-satir.benim .s-zaman{color:rgba(255,255,255,0.6);text-align:right;}
+.s-txt{font-size:12px;line-height:1.5;word-break:break-word;color:#222;}
+.s-satir.benim .s-txt{color:#fff;}
 .s-engelle{
-  position:absolute;top:6px;right:8px;
+  position:absolute;top:4px;right:6px;
   background:none;border:none;font-size:10px;
   color:#ccc;cursor:pointer;padding:0;
   display:none;
 }
 .s-mesaj:hover .s-engelle{display:block}
+.alinti-bar{
+  background:rgba(251,146,60,0.15);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-left:3px solid #fb923c;
+  border-radius:4px;padding:6px 10px;
+  margin:6px 12px;font-size:11px;color:#333;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.alinti-iptal{background:none;border:none;cursor:pointer;font-size:14px;color:#888;padding:0;}
 .sohbet-alt{
   padding:10px 12px;border-top:1px solid rgba(0,0,0,0.08);
   display:flex;gap:8px;align-items:center;
@@ -1426,11 +1458,20 @@ let yeniMesajSayisi = 0;
 let sonMesajId = 0;
 let pollingInterval = null;
 
+function adiDegistir() {
+  const yeniAdi = prompt('Yeni kullanıcı adın (maks 12 karakter):', myAdi);
+  if (!yeniAdi || !yeniAdi.trim()) return;
+  const temiz = yeniAdi.trim().slice(0, 12).replace(/[^a-zA-Z0-9çğışöüÇĞİŞÖÜ]/g, '');
+  if (!temiz) { alert('Geçersiz ad. Sadece harf ve rakam kullanabilirsin.'); return; }
+  localStorage.setItem('tdb_adi', temiz);
+  location.reload();
+}
+
 function sohbetAc() {
   sohbetAcik = true;
   document.getElementById('sohbetPanel').classList.add('open');
   document.getElementById('sohbetOverlay').style.display = 'block';
-  document.getElementById('sohbetKullanici').textContent = 'Sen: ' + myAdi;
+  document.getElementById('sohbetKullanici').textContent = 'Sen: ' + myAdi + ' | ID: ' + myId;
   yeniMesajSayisi = 0;
   document.getElementById('sohbetBadge').style.display = 'none';
   mesajlariYukle();
@@ -1454,20 +1495,51 @@ function isAdmin(adi) {
   return adi === ADMIN_ADI;
 }
 
-function mesajHTML(m) {
+let alintMesaj = null;
+
+function alintIptal() {
+  alintMesaj = null;
+  document.getElementById('alintBar').style.display = 'none';
+  document.getElementById('alintText').textContent = '';
+}
+
+function mesajaBasiliTut(m) {
+  alintMesaj = m;
+  document.getElementById('alintBar').style.display = 'flex';
+  document.getElementById('alintText').textContent = m.kullanici_adi + ': ' + m.mesaj.slice(0, 60) + (m.mesaj.length > 60 ? '...' : '');
+  document.getElementById('sohbetInput').focus();
+}
+
+function mesajHTML(m, alintMi) {
   const benim   = m.kullanici_id === myId;
   const admin   = isAdmin(m.kullanici_adi);
   const engelle = (!benim && isAdmin(myAdi))
     ? `<button class="s-engelle" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
     : '';
-  return `<div class="s-mesaj${benim?' benim':''}${admin?' admin-msg':''}" data-id="${m.id}">
-    <div class="s-ust">
-      <span class="s-isim${admin?' admin-isim':''}">${admin?'⭐ ':''}${m.kullanici_adi}</span>
-      <span class="s-zaman">${zamanFormat(m.olusturuldu)}</span>
+  const alintHTML = m.alinti_adi
+    ? `<div class="s-alinti"><b>${m.alinti_adi}:</b> ${(m.alinti_txt||'').replace(/</g,'&lt;').slice(0,60)}</div>`
+    : '';
+  const alintUyari = alintMi ? ' alinti-uyari' : '';
+  return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}">
+    ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${admin?'⭐ ':''}${m.kullanici_adi}</span></div>` : ''}
+    <div class="s-mesaj${admin?' admin-msg':''}${alintUyari}" data-id="${m.id}"
+      oncontextmenu="event.preventDefault();mesajaBasiliTut(${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
+      ontouchstart="uzunBas(this,${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
+      ontouchend="kısaBas()">
+      ${alintHTML}
+      <div class="s-txt">${m.mesaj.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      ${engelle}
     </div>
-    <div class="s-txt">${m.mesaj.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-    ${engelle}
+    <div class="s-zaman">${zamanFormat(m.olusturuldu)}</div>
   </div>`;
+}
+
+let uzunBasTimer = null;
+function uzunBas(el, m) {
+  uzunBasTimer = setTimeout(() => mesajaBasiliTut(m), 500);
+}
+function kısaBas() {
+  clearTimeout(uzunBasTimer);
 }
 
 async function mesajlariYukle() {
@@ -1488,7 +1560,7 @@ async function mesajlariYukle() {
     el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:11px;">Henüz mesaj yok. İlk sen yaz!</div>';
     return;
   }
-  el.innerHTML = filtreli.map(mesajHTML).join('');
+  el.innerHTML = filtreli.map(m => mesajHTML(m, m.alinti_adi === myAdi)).join('');
   el.scrollTop = el.scrollHeight;
   if (filtreli.length > 0) sonMesajId = filtreli[filtreli.length-1].id;
 }
@@ -1509,8 +1581,9 @@ async function yeniMesajlariKontrolEt() {
   const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
 
   data.filter(m => !engSet.has(m.kullanici_id)).forEach(m => {
-    if (document.querySelector(`.s-mesaj[data-id="${m.id}"]`)) return;
-    el.innerHTML += mesajHTML(m);
+    if (document.querySelector(`.s-satir[data-id="${m.id}"]`)) return;
+    const alintMi = m.alinti_adi === myAdi;
+    el.innerHTML += mesajHTML(m, alintMi);
     sonMesajId = Math.max(sonMesajId, m.id);
   });
 
@@ -1533,17 +1606,21 @@ async function mesajGonder() {
   }
 
   input.value = '';
-  const { data } = await sb.from('mesajlar').insert({
+  const kayit = {
     kullanici_id: myId,
     kullanici_adi: myAdi,
     mesaj: mesaj,
-    engellendi: false
-  }).select();
+    engellendi: false,
+    alinti_adi: alintMesaj ? alintMesaj.kullanici_adi : null,
+    alinti_txt: alintMesaj ? alintMesaj.mesaj.slice(0,100) : null
+  };
+  alintIptal();
 
-  // Gönderdiğin mesajı anında ekle
+  const { data } = await sb.from('mesajlar').insert(kayit).select();
+
   if (data && data[0]) {
     const el = document.getElementById('sohbetMesajlar');
-    el.innerHTML += mesajHTML(data[0]);
+    el.innerHTML += mesajHTML(data[0], false);
     el.scrollTop = el.scrollHeight;
     sonMesajId = Math.max(sonMesajId, data[0].id);
   }
@@ -1573,13 +1650,20 @@ async function engelleKullanici(uid, adi) {
   <div class="sohbet-panel" id="sohbetPanel">
     <div class="sohbet-header">
       <div>
-        <span class="sohbet-baslik">💬 Anlık Sohbet</span>
-        <span id="sohbetKullanici" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#888;margin-left:8px;"></span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="sohbet-baslik">💬 Anlık Sohbet</span>
+          <span id="sohbetKullanici" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#888;"></span>
+          <button id="adiDegistirBtn" onclick="adiDegistir()" title="Kullanıcı adını değiştir" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:#888;font-size:13px;line-height:1;-webkit-tap-highlight-color:transparent;">✏️</button>
+        </div>
       </div>
       <button class="sohbet-kapat" onclick="sohbetKapat()">✕</button>
     </div>
     <div class="sohbet-mesajlar" id="sohbetMesajlar">
       <div style="text-align:center;padding:20px;color:#aaa;font-size:11px;">Yükleniyor...</div>
+    </div>
+    <div id="alintBar" style="display:none;" class="alinti-bar">
+      <span id="alintText" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;"></span>
+      <button class="alinti-iptal" onclick="alintIptal()">✕</button>
     </div>
     <div class="sohbet-alt" id="sohbetAlt">
       <input class="sohbet-input" id="sohbetInput" placeholder="Mesajını yaz..." maxlength="200" onkeydown="if(event.key==='Enter')mesajGonder()"/>
