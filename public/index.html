@@ -1649,7 +1649,16 @@ async function engelleKullanici(uid, adi) {
   });
 }
 
-  // Sayfa açılınca 3 saniye sonra bildirim izni iste  // Sayfa açılınca 3 saniye sonra bildirim izni iste
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "6629a189-68c9-4af9-9790-912b49ca6c9a",
+      safari_web_id: "web.onesignal.auto.6629a189-68c9-4af9-9790-912b49ca6c9a",
+      notifyButton: { enable: false },
+      allowLocalhostAsSecureOrigin: true,
+    });
+  });
+
   setTimeout(async () => {
     try {
       if (window.OneSignal && Notification.permission === 'default') {
