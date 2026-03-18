@@ -299,8 +299,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
         <div class="risk-pill" id="rPill"></div>
         <button class="hissettim-btn" id="hissettimBtn" onclick="hissettimBas()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-          Deprem Hissettim
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="hissettimIcon"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span id="hissettimTxt">Deprem Hissettim</span>
         </button>
         <div class="hissettim-info" id="hissettimInfo"></div>
         <div class="hissettim-uyari">Gereksiz kullananlar kalıcı olarak engellenir.</div>
@@ -819,26 +819,30 @@ let aktifIl = '';
 
 async function hissettimBas() {
   if (hissettimCooldown || !aktifIl) return;
+
   const btn  = document.getElementById('hissettimBtn');
+  const txt  = document.getElementById('hissettimTxt');
+  const icon = document.getElementById('hissettimIcon');
   const info = document.getElementById('hissettimInfo');
 
-  // SubId al
+  // SubId
   let subId = null;
-  try {
-    subId = window.OneSignal?.User?.PushSubscription?.id || null;
-  } catch(e) {}
+  try { subId = window.OneSignal?.User?.PushSubscription?.id || null; } catch(e) {}
   if (!subId) {
-    let anonId = localStorage.getItem('tdb_anon_id');
-    if (!anonId) {
-      anonId = 'anon_' + Math.random().toString(36).slice(2) + '_' + Date.now();
-      localStorage.setItem('tdb_anon_id', anonId);
-    }
-    subId = anonId;
+    let a = localStorage.getItem('tdb_anon_id');
+    if (!a) { a = 'anon_' + Math.random().toString(36).slice(2); localStorage.setItem('tdb_anon_id', a); }
+    subId = a;
   }
 
   hissettimCooldown = true;
   btn.disabled = true;
-  btn.textContent = 'Gönderiliyor...';
+
+  // 1 — Gönderiliyor
+  icon.style.display = 'none';
+  txt.textContent = 'Gönderiliyor...';
+  btn.style.background = '';
+
+  let count = 0;
 
   try {
     const r = await fetch('https://tdb-source.vercel.app/api/hissettim', {
@@ -847,26 +851,34 @@ async function hissettimBas() {
       body: JSON.stringify({ il: aktifIl, subId })
     });
     const d = await r.json();
-
     if (d.status === 'cooldown') {
-      btn.textContent = 'Deprem Hissettim';
+      icon.style.display = '';
+      txt.textContent = 'Deprem Hissettim';
       btn.disabled = false;
       hissettimCooldown = false;
       info.textContent = 'Az önce bildirdin.';
       setTimeout(() => { info.textContent = ''; }, 2000);
       return;
     }
-  } catch(e) {}
+    count = d.count || 1;
+  } catch(e) { count = 1; }
 
-  btn.classList.add('sent');
-  btn.textContent = '✓ Bildirildi';
-  info.textContent = '';
+  // 1 saniye bekle sonra yeşile dön
+  await new Promise(r => setTimeout(r, 1000));
 
+  // 2 — Bildirildi (yeşil)
+  txt.textContent = '✓ Bildirildi';
+  btn.style.background = 'linear-gradient(135deg,#1a9a52,#15803d)';
+  info.textContent = count + ' kişi bildirdi — eşik aşılırsa uyarı yapılacak.';
+
+  // 3 saniye sonra sıfırla
   setTimeout(() => {
-    btn.classList.remove('sent');
+    icon.style.display = '';
+    txt.textContent = 'Deprem Hissettim';
+    btn.style.background = '';
     btn.disabled = false;
-    btn.textContent = 'Deprem Hissettim';
     hissettimCooldown = false;
+    info.textContent = '';
   }, 3000);
 }
 
@@ -884,9 +896,12 @@ async function openPanel(cityId, cityName) {
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
   const hBtn = document.getElementById('hissettimBtn');
-  hBtn.classList.remove('sent');
   hBtn.disabled = false;
-  hBtn.textContent = 'Deprem Hissettim';
+  hBtn.style.background = '';
+  const hTxt = document.getElementById('hissettimTxt');
+  const hIcon = document.getElementById('hissettimIcon');
+  if (hTxt) { hTxt.textContent = 'Deprem Hissettim'; }
+  if (hIcon) { hIcon.style.display = ''; }
   document.getElementById('hissettimInfo').textContent = '';
   hissettimCooldown = false;
   document.getElementById('panel').classList.add('open');
