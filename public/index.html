@@ -338,7 +338,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   border-radius:6px;font-size:12px;
   color:#1a56db;cursor:pointer;
   padding:4px 6px;flex-shrink:0;
-  display:block;
+  display:none;
 }
 .s-dogrula-btn:hover{background:rgba(26,86,219,0.25);}
 .verified-badge{
@@ -360,13 +360,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   align-self:center;
   display:none;
 }
+.s-satir.aktif .s-engelle-btn{display:block;}
+.s-satir.aktif .s-dogrula-btn{display:block;}
+.s-satir.aktif .admin-btn-grup{display:flex !important;}
 .s-satir.aktif .s-dogrula-btn{
   background:rgba(26,86,219,0.15);
   border:0.5px solid rgba(26,86,219,0.4);
   border-radius:6px;font-size:12px;
   color:#1a56db;cursor:pointer;
   padding:4px 6px;flex-shrink:0;
-  display:block;
+  display:none;
 }
 .s-dogrula-btn:hover{background:rgba(26,86,219,0.25);}
 .verified-badge{
@@ -1476,8 +1479,8 @@ function mesajHTML(m, alintMi) {
     : '';
   // Admin paneli: blok + doğrulama butonu
   const adminButonlar = (!benim && !admin && ADMIN_IDS.includes(myId))
-    ? `<div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
-        <button class="s-engelle-btn" style="display:block;" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>
+    ? `<div class="admin-btn-grup" style="display:none;flex-direction:column;gap:4px;align-self:center;">
+        <button class="s-engelle-btn" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>
         <button class="s-dogrula-btn" onclick="dogrulaKullanici('${m.kullanici_id}','${m.kullanici_adi}',this)">✚</button>
        </div>`
     : '';
