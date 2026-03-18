@@ -1427,6 +1427,7 @@ setInterval(fetchKandilli, 30 * 1000);
 // ── SOHBET SİSTEMİ ────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://nskwxgdiehvrzzznhljp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5za3d4Z2RpZWh2cnp6em5obGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDcxNjYsImV4cCI6MjA4OTQyMzE2Nn0.7uWBf8_oI-Fwg-HCawL-Jmqw0zzeJHOg3BJlAZeWAT0';
+const ADMIN_ADI    = 'BURAYA_ADMIN_ADI';
 const ADMIN_IDS    = ['u_g1ghv5wryymmwerand'];
 
 const sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1479,7 +1480,7 @@ function sohbetAc() {
   mesajlariYukle();
   // Polling başlat — 2 saniyede bir kontrol
   if (!pollingInterval) {
-    pollingInterval = setInterval(yeniMesajlariKontrolEt, 2000);
+    pollingInterval = setInterval(yeniMesajlariKontrolEt, 1500);
   }
 }
 
@@ -1493,8 +1494,9 @@ function zamanFormat(ts) {
   return new Date(ts).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
 }
 
-function isAdmin(adi) {
-  return adi === ADMIN_ADI;
+function isAdmin(adi, uid) {
+  if (uid) return ADMIN_IDS.includes(uid);
+  return false;
 }
 
 let alintMesaj = null;
@@ -1514,8 +1516,8 @@ function mesajaBasiliTut(m) {
 
 function mesajHTML(m, alintMi) {
   const benim   = m.kullanici_id === myId;
-  const admin   = isAdmin(m.kullanici_adi);
-  const engelle = (!benim && isAdmin(myAdi))
+  const admin   = isAdmin(m.kullanici_adi, m.kullanici_id);
+  const engelle = (!benim && ADMIN_IDS.includes(myId))
     ? `<button class="s-engelle" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
     : '';
   const alintHTML = m.alinti_adi
@@ -1564,6 +1566,7 @@ async function mesajlariYukle() {
   }
   el.innerHTML = filtreli.map(m => mesajHTML(m, m.alinti_adi === myAdi)).join('');
   el.scrollTop = el.scrollHeight;
+  el.scrollTop = el.scrollHeight;
   if (filtreli.length > 0) sonMesajId = filtreli[filtreli.length-1].id;
 }
 
@@ -1590,6 +1593,14 @@ async function yeniMesajlariKontrolEt() {
   });
 
   if (atBottom) el.scrollTop = el.scrollHeight;
+
+  // Badge güncelle
+  if (!sohbetAcik && data.length > 0) {
+    yeniMesajSayisi += data.length;
+    const badge = document.getElementById('sohbetBadge');
+    badge.style.display = 'flex';
+    badge.textContent = yeniMesajSayisi > 9 ? '9+' : yeniMesajSayisi;
+  }
 }
 
 async function mesajGonder() {
@@ -1629,7 +1640,7 @@ async function mesajGonder() {
 }
 
 async function engelleKullanici(uid, adi) {
-  if (!isAdmin(myAdi)) return;
+  if (!ADMIN_IDS.includes(myId)) return;
   if (!confirm(adi + ' engellensin mi?')) return;
   await sb.from('engelliler').insert({ kullanici_id: uid });
   await sb.from('mesajlar').update({ engellendi: true }).eq('kullanici_id', uid);
