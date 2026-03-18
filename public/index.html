@@ -1320,11 +1320,10 @@ setInterval(fetchKandilli, 30 * 1000);
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-  window.OneSignal = window.OneSignal || [];
-  OneSignal.push(function() {
-    OneSignal.init({
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
       appId: "6629a189-68c9-4af9-9790-912b49ca6c9a",
-      safari_web_id: "web.onesignal.auto.6629a189-68c9-4af9-9790-912b49ca6c9a",
       notifyButton: { enable: false },
       autoResubscribe: true,
       welcomeNotification: { disable: true },
