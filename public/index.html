@@ -293,9 +293,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .sohbet-mesajlar::-webkit-scrollbar{width:3px}
 .sohbet-mesajlar::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:2px}
 .sohbet-mesajlar{display:flex;flex-direction:column;gap:4px;padding:10px 12px;}
-.s-satir{display:flex;flex-direction:column;max-width:80%;}
-.s-satir.benim{align-self:flex-end;align-items:flex-end;}
-.s-satir.diger{align-self:flex-start;align-items:flex-start;}
+.s-satir{display:flex;flex-direction:column;width:100%;}
+.s-satir.benim{align-items:flex-end;}
+.s-satir.diger{align-items:flex-start;}
 .s-mesaj{
   padding:7px 11px;border-radius:14px;
   background:rgba(255,255,255,0.9);
@@ -1443,9 +1443,9 @@ function mesajHTML(m, alintMi) {
     ? `<div class="s-alinti"><b>${m.alinti_adi}:</b> ${(m.alinti_txt||'').replace(/</g,'&lt;').slice(0,60)}</div>`
     : '';
   const alintUyari = alintMi ? ' alinti-uyari' : '';
-  return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}" style="display:flex;align-items:flex-end;gap:6px;">
-    <div style="display:flex;flex-direction:column;${benim?'align-items:flex-end;margin-left:auto;':'max-width:80%;'}">
-      ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${m.kullanici_adi}${admin?' 👑':''}</span></div>` : ''}
+  return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}">
+    ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${m.kullanici_adi}${admin?' 👑':''}</span></div>` : ''}
+    <div style="display:flex;align-items:flex-end;gap:6px;${benim?'justify-content:flex-end;':''}">
       <div class="s-mesaj${admin?' admin-msg':''}${alintUyari}" data-id="${m.id}"
         oncontextmenu="event.preventDefault();mesajaBasiliTut(${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
         ontouchstart="uzunBas(this,${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
@@ -1453,9 +1453,9 @@ function mesajHTML(m, alintMi) {
         ${alintHTML}
         <div class="s-txt">${m.mesaj.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
       </div>
-      <div class="s-zaman">${zamanFormat(m.olusturuldu)}</div>
+      ${engelle}
     </div>
-    ${engelle}
+    <div class="s-zaman">${zamanFormat(m.olusturuldu)}</div>
   </div>`;
 }
 function uzunBas(el, m) {
