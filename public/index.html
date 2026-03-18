@@ -822,16 +822,35 @@ async function hissettimBas() {
   const btn  = document.getElementById('hissettimBtn');
   const info = document.getElementById('hissettimInfo');
 
-  // OneSignal subscription ID al
+  // OneSignal subscription ID al — birden fazla yöntem dene
   let subId = null;
   try {
     if (window.OneSignal) {
-      subId = await OneSignal.User.PushSubscription.id;
+      // Yeni SDK
+      subId = OneSignal.User?.PushSubscription?.id;
+      // Eski SDK fallback
+      if (!subId) subId = await OneSignal.getUserId?.();
+      // Alternatif
+      if (!subId) subId = await OneSignal.getSubscriptionId?.();
     }
   } catch(e) {}
 
   if (!subId) {
-    info.textContent = 'Bildirim izni gerekiyor. Lütfen bildirimlere abone ol.';
+    // Abone değil — izin iste
+    info.textContent = 'Bildirim izni veriliyor...';
+    try {
+      if (window.OneSignal) {
+        await OneSignal.Notifications?.requestPermission?.();
+        await new Promise(r => setTimeout(r, 1500));
+        subId = OneSignal.User?.PushSubscription?.id;
+        if (!subId) subId = await OneSignal.getUserId?.();
+      }
+    } catch(e) {}
+  }
+
+  if (!subId) {
+    info.textContent = 'Bildirim izni gerekiyor. Ayarlardan izin ver.';
+    hissettimCooldown = false;
     return;
   }
 
@@ -1247,4 +1266,24 @@ setInterval(fetchKandilli, 30 * 1000);
 </script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-  wind
+  windwindow.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "6629a189-68c9-4af9-9790-912b49ca6c9a",
+      safari_web_id: "web.onesignal.auto.6629a189-68c9-4af9-9790-912b49ca6c9a",
+      notifyButton: { enable: false },
+      allowLocalhostAsSecureOrigin: true,
+    });
+  });
+
+  // Sayfa açılınca 3 saniye sonra bildirim izni iste
+  setTimeout(async () => {
+    try {
+      if (window.OneSignal && Notification.permission === 'default') {
+        await OneSignal.Notifications?.requestPermission?.();
+      }
+    } catch(e) {}
+  }, 3000);
+</script>
+</body>
+</html>
