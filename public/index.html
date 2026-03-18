@@ -1651,23 +1651,6 @@ async function engelleKullanici(uid, adi) {
   });
 }
 
-  window.OneSignal = window.OneSignal || [];
-  OneSignal.push(function() {
-    OneSignal.init({
-      appId: "6629a189-68c9-4af9-9790-912b49ca6c9a",
-      safari_web_id: "web.onesignal.auto.6629a189-68c9-4af9-9790-912b49ca6c9a",
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: true,
-    });
-  });
-
-  setTimeout(async () => {
-    try {
-      if (window.OneSignal && Notification.permission === 'default') {
-        await OneSignal.Notifications?.requestPermission?.();
-      }
-    } catch(e) {}
-  }, 3000);
 </script>
   <!-- SOHBET PANELİ - tam ekran overlay -->
   <div id="sohbetOverlay" onclick="sohbetKapat()" style="display:none;position:fixed;inset:0;z-index:599;background:rgba(0,0,0,0.3);"></div>
