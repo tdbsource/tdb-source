@@ -90,7 +90,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .region-card::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
 .region-title{font-family:'Syne',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text);padding:5px 8px;text-align:center;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border:none;border-bottom:1px solid rgba(0,0,0,0.1);border-radius:14px 14px 0 0;position:sticky;top:0;z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;margin:-10px -10px 8px -10px;border-radius:14px 14px 0 0;position:sticky;top:-10px;z-index:2}
 .prov-list{display:flex;flex-wrap:wrap;gap:2px;padding:4px}
-.prov-section-header{flex-basis:100%;}
+.prov-section-header{flex-basis:100%;position:static !important;margin-top:6px !important;}
 .prov-pill.new-quake{animation:newquake 0.6s ease-in-out infinite}
 @keyframes newquake{0%,100%{outline:2px solid #e03535;outline-offset:2px;box-shadow:0 0 8px #e03535}50%{outline:2px solid transparent;box-shadow:none}}
 .prov-pill{display:flex;align-items:center;justify-content:space-between;padding:1px 4px;border-radius:4px;background:rgba(255,255,255,0.82);border:1px solid rgba(0,0,0,.10);cursor:pointer;transition:all .15s ease;gap:2px;min-height:14px;flex:1 1 calc(50% - 2px);min-width:60px}
