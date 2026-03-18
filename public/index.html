@@ -43,13 +43,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .logo{display:flex;flex-direction:column;align-items:flex-start;gap:0px}
 .logo-name{font-size:21px;font-weight:800;letter-spacing:-.025em;color:var(--text)}
 .logo-gen{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(90deg,#7c3aed,#1a1a2e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-top:1px}
-.hissettim-btn{width:100%;padding:11px;margin-top:10px;background:linear-gradient(135deg,#e03535,#b91c1c);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;font-family:inherit;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;box-sizing:border-box;}
+
 .hissettim-btn:hover{opacity:.88}
 .hissettim-btn:disabled{opacity:.45;cursor:not-allowed}
 .hissettim-btn.sent{background:linear-gradient(135deg,#1a9a52,#15803d)}
-.hissettim-uyari{font-size:10px;color:#e03535;text-align:center;margin-top:4px;font-family:'JetBrains Mono',monospace;animation:uyariblink 2s ease-in-out infinite}
+
 @keyframes uyariblink{0%,100%{opacity:1}50%{opacity:.35}}
-.hissettim-info{font-size:11px;color:var(--text3);text-align:center;margin-top:6px;min-height:16px;font-family:'JetBrains Mono',monospace}
+
 .tdb-btn{display:inline-flex;align-items:center;gap:6px;margin-left:14px;padding:5px 12px;background:#000;color:#fff;border-radius:20px;border:1.5px solid rgba(255,255,255,0.15);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.06em;text-decoration:none;cursor:pointer;animation:tdb-pulse 2.4s ease-in-out infinite;flex-shrink:0}
 .tdb-btn:hover{background:#111;border-color:rgba(255,255,255,.35)}
 @keyframes tdb-pulse{0%,100%{opacity:1}50%{opacity:.55}}
@@ -437,21 +437,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="ai-tag"><div class="ai-ico">✦</div><span class="ai-tag-lbl">Source Gen 8 Analiz</span></div>
         <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
         <div class="risk-pill" id="rPill"></div>
-        <div id="hisset-wrap" style="margin-top:10px;">
-          <div id="hisset-kart" onclick="hissettimBas()" style="
-            display:flex;align-items:center;justify-content:space-between;
-            background:#1c2030;border-radius:10px;padding:10px 14px;
-            cursor:pointer;-webkit-tap-highlight-color:transparent;
-            user-select:none;-webkit-user-select:none;
-          ">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div id="hisset-dot" style="width:8px;height:8px;border-radius:50%;background:#e03535;flex-shrink:0;"></div>
-              <span id="hisset-lbl" style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#fff;letter-spacing:.02em;">Deprem Hissettim</span>
-            </div>
-            <span id="hisset-badge" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#fff;letter-spacing:.06em;animation:uyariblink 1.5s ease-in-out infinite;">BILDIR</span>
-          </div>
-          <div id="hisset-info" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#e03535;text-align:center;margin-top:5px;min-height:14px;letter-spacing:.04em;animation:uyariblink 2s ease-in-out infinite;">Gereksiz kullananlar kalıcı olarak engellenir.</div>
-        </div>
+
       </div>
     </div>
     <div class="tabs">
@@ -962,81 +948,9 @@ function getDailyBars(eqs) {
 }
 
 // ── DEPREMİ HİSSETTİM ─────────────────────────────────────────────────────
-let hissettimCooldown = false;
 let aktifIl = '';
 
-async function hissettimBas() {
-  if (hissettimCooldown || !aktifIl) return;
 
-  const kart  = document.getElementById('hisset-kart');
-  const lbl   = document.getElementById('hisset-lbl');
-  const dot   = document.getElementById('hisset-dot');
-  const badge = document.getElementById('hisset-badge');
-  const info  = document.getElementById('hisset-info');
-
-  let subId = null;
-  try {
-    // Önce OneSignal subID dene — birkaç kez bekleyerek
-    for (let i = 0; i < 3; i++) {
-      subId = window.OneSignal?.User?.PushSubscription?.id || null;
-      if (subId) break;
-      await new Promise(r => setTimeout(r, 300));
-    }
-  } catch(e) {}
-  // Bulunamazsa localStorage anonim ID — fallback
-  if (!subId) {
-    let a = localStorage.getItem('tdb_anon_id');
-    if (!a) { a = 'anon_' + Math.random().toString(36).slice(2); localStorage.setItem('tdb_anon_id', a); }
-    subId = a;
-  }
-
-  hissettimCooldown = true;
-  kart.style.pointerEvents = 'none';
-
-  // Gönderiliyor
-  dot.style.background = '#e8a800';
-  lbl.textContent = 'Gönderiliyor...';
-  badge.textContent = '...';
-  info.textContent = '';
-
-  let count = 0;
-  try {
-    const r = await fetch('https://tdb-source.vercel.app/api/hissettim', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ il: aktifIl, subId })
-    });
-    const d = await r.json();
-    if (d.status === 'cooldown') {
-      dot.style.background = '#e03535';
-      lbl.textContent = 'Deprem Hissettim';
-      badge.textContent = 'BILDIR';
-      info.textContent = 'Az önce bildirdin.';
-      kart.style.pointerEvents = '';
-      hissettimCooldown = false;
-      setTimeout(() => { info.textContent = 'Gereksiz kullananlar kalıcı olarak engellenir.'; }, 2000);
-      return;
-    }
-    count = d.count || 1;
-  } catch(e) { count = 1; }
-
-  // Bildirildi
-  kart.style.background = '#0f4c2a';
-  dot.style.background = '#22c55e';
-  lbl.textContent = '✓ Bildirildi';
-  badge.textContent = count + ' KİŞİ';
-  info.textContent = count + ' kişi bildirdi — eşik aşılırsa uyarı yapılacak.';
-
-  setTimeout(() => {
-    kart.style.background = '#1c2030';
-    dot.style.background = '#e03535';
-    lbl.textContent = 'Deprem Hissettim';
-    badge.textContent = 'BILDIR';
-    info.textContent = 'Gereksiz kullananlar kalıcı olarak engellenir.';
-    kart.style.pointerEvents = '';
-    hissettimCooldown = false;
-  }, 3000);
-}
 
 // ── PANEL AÇ ──────────────────────────────────────────────────────────────
 const DAYS = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
@@ -1051,17 +965,7 @@ async function openPanel(cityId, cityName) {
   await fetchKandilli();
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
-  const hKart = document.getElementById('hisset-kart');
-  const hLbl  = document.getElementById('hisset-lbl');
-  const hDot  = document.getElementById('hisset-dot');
-  const hBadge = document.getElementById('hisset-badge');
-  const hInfo = document.getElementById('hisset-info');
-  if (hKart)  { hKart.style.background = '#1c2030'; hKart.style.pointerEvents = ''; }
-  if (hLbl)   { hLbl.textContent = 'Deprem Hissettim'; }
-  if (hDot)   { hDot.style.background = '#e03535'; }
-  if (hBadge) { hBadge.textContent = 'BILDIR'; }
-  if (hInfo)  { hInfo.textContent = 'Gereksiz kullananlar kalıcı olarak engellenir.'; }
-  hissettimCooldown = false;
+
   document.getElementById('panel').classList.add('open');
   document.getElementById('mobOverlay').classList.add('on');
 
@@ -1430,7 +1334,7 @@ setInterval(fetchKandilli, 30 * 1000);
 const SUPABASE_URL = 'https://nskwxgdiehvrzzznhljp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5za3d4Z2RpZWh2cnp6em5obGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDcxNjYsImV4cCI6MjA4OTQyMzE2Nn0.7uWBf8_oI-Fwg-HCawL-Jmqw0zzeJHOg3BJlAZeWAT0';
 const ADMIN_ADI    = 'BURAYA_ADMIN_ADI';
-const ADMIN_IDS    = ['u_j4inopt50c9mmwk0how'];
+const ADMIN_IDS    = ['u_g1ghv5wryymmwerand'];
 
 const sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1462,6 +1366,15 @@ let sohbetAcik = false;
 let yeniMesajSayisi = 0;
 let sonMesajId = 0;
 let pollingInterval = null;
+
+async function bildirimAboneOl() {
+  try {
+    await OneSignal.Notifications.requestPermission();
+    await new Promise(r => setTimeout(r, 1500));
+    // Abone olduktan sonra input'u geri getir
+    document.getElementById('sohbetAlt').innerHTML = '<input class="sohbet-input" id="sohbetInput" placeholder="Mesajını yaz..." maxlength="200" onkeydown="if(event.key==='Enter')mesajGonder()"/><button class="sohbet-gonder" onclick="mesajGonder()">Gönder</button>';
+  } catch(e) {}
+}
 
 function adiDegistir() {
   const yeniAdi = prompt('Yeni kullanıcı adın (maks 12 karakter):', myAdi);
@@ -1611,12 +1524,20 @@ async function mesajGonder() {
   const mesaj = input.value.trim();
   if (!mesaj) return;
 
-  // Abone veya anonim ID kontrolü
+  // Abonelik kontrolü
   let subId = null;
-  try { subId = window.OneSignal?.User?.PushSubscription?.id || null; } catch(e) {}
-  const anonId = localStorage.getItem('tdb_anon_id');
-  if (!subId && !anonId) {
-    document.getElementById('sohbetAlt').innerHTML = '<div class="s-abone-uyari">Mesaj göndermek için bildirim abonesi olman gerekiyor.</div>';
+  try {
+    for (let i = 0; i < 3; i++) {
+      subId = window.OneSignal?.User?.PushSubscription?.id || null;
+      if (subId) break;
+      await new Promise(r => setTimeout(r, 300));
+    }
+  } catch(e) {}
+  if (!subId) {
+    document.getElementById('sohbetAlt').innerHTML = \`<div class="s-abone-uyari" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <span>Mesaj göndermek için abone ol</span>
+      <button onclick="bildirimAboneOl()" style="background:linear-gradient(135deg,#1a56db,#06b6d4);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;padding:6px 12px;cursor:pointer;">🔔 Abone Ol</button>
+    </div>\`;
     return;
   }
 
