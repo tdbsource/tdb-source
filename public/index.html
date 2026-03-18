@@ -332,6 +332,23 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .s-satir.benim .s-zaman{color:rgba(255,255,255,0.6);text-align:right;}
 .s-txt{font-size:12px;line-height:1.5;word-break:break-word;color:#222;}
 .s-satir.benim .s-txt{color:#fff;}
+.s-dogrula-btn{
+  background:rgba(26,86,219,0.15);
+  border:0.5px solid rgba(26,86,219,0.4);
+  border-radius:6px;font-size:12px;
+  color:#1a56db;cursor:pointer;
+  padding:4px 6px;flex-shrink:0;
+  display:block;
+}
+.s-dogrula-btn:hover{background:rgba(26,86,219,0.25);}
+.verified-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:14px;height:14px;border-radius:50%;
+  background:linear-gradient(135deg,#1a56db,#06b6d4);
+  color:#fff;font-size:8px;font-weight:900;
+  margin-left:3px;vertical-align:middle;
+  flex-shrink:0;
+}
 .s-engelle-btn{
   background:rgba(220,40,40,0.12);
   border:0.5px solid rgba(220,40,40,0.3);
@@ -343,7 +360,24 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   align-self:center;
   display:none;
 }
-.s-satir.aktif .s-engelle-btn{display:block;}
+.s-satir.aktif .s-dogrula-btn{
+  background:rgba(26,86,219,0.15);
+  border:0.5px solid rgba(26,86,219,0.4);
+  border-radius:6px;font-size:12px;
+  color:#1a56db;cursor:pointer;
+  padding:4px 6px;flex-shrink:0;
+  display:block;
+}
+.s-dogrula-btn:hover{background:rgba(26,86,219,0.25);}
+.verified-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:14px;height:14px;border-radius:50%;
+  background:linear-gradient(135deg,#1a56db,#06b6d4);
+  color:#fff;font-size:8px;font-weight:900;
+  margin-left:3px;vertical-align:middle;
+  flex-shrink:0;
+}
+.s-engelle-btn{display:block;}
 .alinti-bar{
   background:rgba(251,146,60,0.15);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -1436,19 +1470,24 @@ function mesajaBasiliTut(m) {
 function mesajHTML(m, alintMi) {
   const benim   = m.kullanici_id === myId;
   const admin   = isAdmin(m.kullanici_adi, m.kullanici_id);
-  const kisiselEngel = (!benim)
+  // Admin mesajlarında engel butonu çıkmasın
+  const kisiselEngel = (!benim && !admin)
     ? `<button class="s-engelle-btn" onclick="kisiselEngelle('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
     : '';
-  const adminEngel = (!benim && ADMIN_IDS.includes(myId))
-    ? `<button class="s-engelle-btn admin-engel" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')" style="background:rgba(220,40,40,0.25);border-color:rgba(220,40,40,0.5);">🔴</button>`
+  // Admin paneli: blok + doğrulama butonu
+  const adminButonlar = (!benim && !admin && ADMIN_IDS.includes(myId))
+    ? `<div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
+        <button class="s-engelle-btn" style="display:block;" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>
+        <button class="s-dogrula-btn" onclick="dogrulaKullanici('${m.kullanici_id}','${m.kullanici_adi}',this)">✚</button>
+       </div>`
     : '';
-  const engelle = kisiselEngel;
+  const engelle = ADMIN_IDS.includes(myId) ? adminButonlar : kisiselEngel;
   const alintHTML = m.alinti_adi
     ? `<div class="s-alinti"><b>${m.alinti_adi}:</b> ${(m.alinti_txt||'').replace(/</g,'&lt;').slice(0,60)}</div>`
     : '';
   const alintUyari = alintMi ? ' alinti-uyari' : '';
   return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}" onclick="mesajTikla(this)">
-    ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${m.kullanici_adi}${admin?' 👑':''}</span></div>` : ''}
+    ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${m.kullanici_adi}${admin?' 👑':''}${m.verified?'<span class="verified-badge">✓</span>':''}</span></div>` : ''}
     <div style="display:flex;align-items:flex-end;gap:6px;${benim?'justify-content:flex-end;':''}">
       <div class="s-mesaj${admin?' admin-msg':''}${alintUyari}" data-id="${m.id}"
         oncontextmenu="event.preventDefault();mesajaBasiliTut(${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
@@ -1551,6 +1590,40 @@ async function mesajGonder() {
     el.scrollTop = el.scrollHeight;
     sonMesajId = Math.max(sonMesajId, data[0].id);
   }
+}
+
+async function dogrulaKullanici(uid, adi, btn) {
+  if (!ADMIN_IDS.includes(myId)) return;
+  // Mevcut durumu kontrol et
+  const { data } = await sb.from('mesajlar')
+    .select('verified')
+    .eq('kullanici_id', uid)
+    .limit(1);
+  const mevcutVerified = data?.[0]?.verified || false;
+  const yeniDurum = !mevcutVerified;
+  const onayMesaj = yeniDurum
+    ? adi + ' için doğrulama rozeti eklensin mi?'
+    : adi + ' için doğrulama rozeti kaldırılsın mı?';
+  if (!confirm(onayMesaj)) return;
+  await sb.from('mesajlar').update({ verified: yeniDurum }).eq('kullanici_id', uid);
+  // Ekrandaki tüm mesajlarını güncelle
+  document.querySelectorAll('.s-satir').forEach(el => {
+    const isim = el.querySelector('.s-isim');
+    if (!isim) return;
+    const ad = isim.textContent.replace(' 👑','').replace('✓','').trim();
+    if (ad === adi) {
+      const badge = isim.querySelector('.verified-badge');
+      if (yeniDurum && !badge) {
+        const b = document.createElement('span');
+        b.className = 'verified-badge';
+        b.textContent = '✓';
+        isim.appendChild(b);
+      } else if (!yeniDurum && badge) {
+        badge.remove();
+      }
+    }
+  });
+  btn.style.background = yeniDurum ? 'rgba(26,86,219,0.3)' : '';
 }
 
 function getKisiselEngeller() {
