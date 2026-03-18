@@ -313,7 +313,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .s-satir.diger .s-mesaj{
   border-radius:14px 14px 14px 4px;
 }
-.s-mesaj.admin-msg{background:rgba(245,200,0,0.2);border-color:rgba(245,200,0,0.4);}
+.s-mesaj.admin-msg{background:linear-gradient(135deg,#1a0000,#2d0a0a,#1a0010);border-color:rgba(220,50,50,0.4);}
+.s-satir.diger .s-mesaj.admin-msg .s-txt{color:#fff;}
+.s-isim.admin-isim{color:#ff6b6b;}
 .s-mesaj.alinti-uyari{background:rgba(251,146,60,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-color:rgba(251,146,60,0.5);}
 .s-alinti{
   background:rgba(0,0,0,0.08);border-left:3px solid rgba(0,0,0,0.2);
@@ -1425,7 +1427,7 @@ setInterval(fetchKandilli, 30 * 1000);
 // ── SOHBET SİSTEMİ ────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://nskwxgdiehvrzzznhljp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5za3d4Z2RpZWh2cnp6em5obGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDcxNjYsImV4cCI6MjA4OTQyMzE2Nn0.7uWBf8_oI-Fwg-HCawL-Jmqw0zzeJHOg3BJlAZeWAT0';
-const ADMIN_ADI    = 'BURAYA_ADMIN_ADI'; // Sisteme girip öğrendiğin adını yaz
+const ADMIN_IDS    = ['u_g1ghv5wryymmwerand'];
 
 const sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1521,7 +1523,7 @@ function mesajHTML(m, alintMi) {
     : '';
   const alintUyari = alintMi ? ' alinti-uyari' : '';
   return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}">
-    ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${admin?'⭐ ':''}${m.kullanici_adi}</span></div>` : ''}
+    ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${m.kullanici_adi}${admin?' 👑':''}</span></div>` : ''}
     <div class="s-mesaj${admin?' admin-msg':''}${alintUyari}" data-id="${m.id}"
       oncontextmenu="event.preventDefault();mesajaBasiliTut(${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
       ontouchstart="uzunBas(this,${JSON.stringify({id:m.id,kullanici_adi:m.kullanici_adi,mesaj:m.mesaj}).replace(/"/g,'&quot;')})"
