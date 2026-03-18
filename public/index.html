@@ -298,9 +298,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="ai-tag"><div class="ai-ico">✦</div><span class="ai-tag-lbl">Source Gen 8 Analiz</span></div>
         <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
         <div class="risk-pill" id="rPill"></div>
-        <div class="hissettim-btn" id="hissettimBtn" onclick="hissettimBas()">
-          <span id="hissettimTxt">Deprem Hissettim</span>
-        </div>
+        <button class="hissettim-btn" id="hissettimBtn" onclick="hissettimBas()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Deprem Hissettim
+        </button>
         <div class="hissettim-info" id="hissettimInfo"></div>
         <div class="hissettim-uyari">Gereksiz kullananlar kalıcı olarak engellenir.</div>
       </div>
@@ -821,14 +822,11 @@ async function hissettimBas() {
   const btn  = document.getElementById('hissettimBtn');
   const info = document.getElementById('hissettimInfo');
 
-  // OneSignal subscription ID — senkron okuma
+  // SubId al
   let subId = null;
   try {
-    // v16 SDK
     subId = window.OneSignal?.User?.PushSubscription?.id || null;
   } catch(e) {}
-
-  // Bulunamazsa anonim ID üret — bildirim aboneliği zorunlu değil
   if (!subId) {
     let anonId = localStorage.getItem('tdb_anon_id');
     if (!anonId) {
@@ -839,9 +837,8 @@ async function hissettimBas() {
   }
 
   hissettimCooldown = true;
-  btn.style.pointerEvents = 'none';
-  btn.style.opacity = '0.6';
-  document.getElementById('hissettimTxt').textContent = 'Gönderiliyor...';
+  btn.disabled = true;
+  btn.textContent = 'Gönderiliyor...';
 
   try {
     const r = await fetch('https://tdb-source.vercel.app/api/hissettim', {
@@ -852,28 +849,24 @@ async function hissettimBas() {
     const d = await r.json();
 
     if (d.status === 'cooldown') {
-      btn.style.pointerEvents = '';
-      btn.style.opacity = '';
+      btn.textContent = 'Deprem Hissettim';
+      btn.disabled = false;
       hissettimCooldown = false;
-      info.textContent = 'Az önce bildirdin, biraz bekle.';
+      info.textContent = 'Az önce bildirdin.';
+      setTimeout(() => { info.textContent = ''; }, 2000);
       return;
     }
   } catch(e) {}
 
-  // Her durumda anında "Bildirildi" göster
   btn.classList.add('sent');
-  document.getElementById('hissettimTxt').textContent = '✓ Bildirildi';
+  btn.textContent = '✓ Bildirildi';
   info.textContent = '';
 
-  // 3 saniye sonra normale dön
   setTimeout(() => {
-    hissettimCooldown = false;
-    btn.disabled = false;
     btn.classList.remove('sent');
-    btn.style.pointerEvents = '';
-    btn.style.opacity = '';
-    document.getElementById('hissettimTxt').textContent = 'Deprem Hissettim';
-    info.textContent = '';
+    btn.disabled = false;
+    btn.textContent = 'Deprem Hissettim';
+    hissettimCooldown = false;
   }, 3000);
 }
 
@@ -890,10 +883,10 @@ async function openPanel(cityId, cityName) {
   await fetchKandilli();
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
-  document.getElementById('hissettimBtn').classList.remove('sent');
-  document.getElementById('hissettimBtn').style.pointerEvents = '';
-  document.getElementById('hissettimBtn').style.opacity = '';
-  document.getElementById('hissettimTxt').textContent = 'Deprem Hissettim';
+  const hBtn = document.getElementById('hissettimBtn');
+  hBtn.classList.remove('sent');
+  hBtn.disabled = false;
+  hBtn.textContent = 'Deprem Hissettim';
   document.getElementById('hissettimInfo').textContent = '';
   hissettimCooldown = false;
   document.getElementById('panel').classList.add('open');
