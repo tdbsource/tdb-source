@@ -1126,13 +1126,23 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
 const regionsEl = document.getElementById('regions');
 REGIONS.forEach((reg, regIdx) => {
   const card = document.createElement('div');
-  card.className = 'region-card' + (regIdx === 0 ? ' open' : '');
+  card.className = 'region-card' + (regIdx <= 1 ? ' open' : '');
   const title = document.createElement('div');
   title.className = 'region-title';
 
   const titleText = document.createElement('span');
   titleText.textContent = reg.title;
+
+  const arrow = document.createElement('span');
+  arrow.className = 'r-arrow';
+  arrow.textContent = '⌄';
+
   title.appendChild(titleText);
+  title.appendChild(arrow);
+
+  title.addEventListener('click', () => {
+    card.classList.toggle('open');
+  });
 
   card.appendChild(title);
   let list = document.createElement('div');
