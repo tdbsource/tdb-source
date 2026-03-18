@@ -1521,23 +1521,6 @@ async function mesajGonder() {
   const mesaj = input.value.trim();
   if (!mesaj) return;
 
-  // Abonelik kontrolü
-  let subId = null;
-  try {
-    for (let i = 0; i < 3; i++) {
-      subId = window.OneSignal?.User?.PushSubscription?.id || null;
-      if (subId) break;
-      await new Promise(r => setTimeout(r, 300));
-    }
-  } catch(e) {}
-  if (!subId) {
-  if (!subId) {
-    document.getElementById('sohbetAlt').innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px;"><span style="font-size:11px;">Mesaj atmak için abone ol</span><button onclick="bildirimAboneOl()" style="background:linear-gradient(135deg,#1a56db,#06b6d4);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;padding:6px 12px;cursor:pointer;">Abone Ol</button></div>';
-    return;
-  }
-
-  }
-
   input.value = '';
   const kayit = {
     kullanici_id: myId,
