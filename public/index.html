@@ -79,21 +79,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .body{display:flex;flex:1;overflow:hidden;position:relative}
 
 /* MAP AREA */
-.map-area{flex:1;position:relative;overflow-y:auto;overflow-x:hidden;background:linear-gradient(160deg,#cdd1d8 0%,#d4d8de 50%,#caced6 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:10px 12px}
+.map-area{flex:1;position:relative;overflow-y:auto;overflow-x:hidden;background:linear-gradient(160deg,#cdd1d8 0%,#d4d8de 50%,#caced6 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:12px 16px}
 .map-area::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px);background-size:44px 44px}
 
 /* REGIONS GRID */
-.regions{position:relative;z-index:1;width:100%;max-width:960px;display:flex;flex-direction:column;gap:0;}
-.region-card{border-bottom:1px solid rgba(0,0,0,0.08);overflow:hidden;}
-.region-card:first-child{border-radius:12px 12px 0 0;overflow:hidden;}
-.region-card:last-child{border-radius:0 0 12px 12px;border-bottom:none;}
-.region-card.open .prov-list{max-height:500px;padding:8px 10px;}
-.region-card.open .region-arrow{transform:rotate(180deg);}
+.regions{position:relative;z-index:1;width:100%;max-width:960px;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.08);}
+.region-card{display:flex;align-items:flex-start;gap:0;border-bottom:0.5px solid rgba(0,0,0,0.09);background:rgba(255,255,255,0.72);}
+.region-card:last-child{border-bottom:none;}
 .region-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.8)}
 .region-card::-webkit-scrollbar{width:3px}
 .region-card::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
-.region-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text);padding:10px 14px;text-align:left;background:rgba(255,255,255,0.75);border:none;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;position:relative;z-index:1;white-space:nowrap;overflow:hidden;text-overflow-10px 8px -10px;border-radius:14px 14px 0 0;position:sticky;top:-10px;z-index:2}
-.prov-list{display:flex;flex-wrap:wrap;gap:3px;padding:0 10px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;}
+.region-title{font-family:'Syne',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(0,0,0,0.45);padding:8px 10px;min-width:88px;width:88px;flex-shrink:0;border-right:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:flex-start;justify-content:flex-end;text-align:right;padding-top:10px;cursor:default;background:rgba(255,255,255,0.5);}
+.prov-list{display:flex;flex-wrap:wrap;gap:3px;padding:6px 8px;flex:1;}
 .prov-section-header{flex-basis:100%;position:static !important;margin-top:6px !important;}
 .akdeniz-header{
   flex-basis:100%;
@@ -109,12 +106,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 }
 .prov-pill.new-quake{animation:newquake 0.6s ease-in-out infinite}
 @keyframes newquake{0%,100%{outline:2px solid #e03535;outline-offset:2px;box-shadow:0 0 8px #e03535}50%{outline:2px solid transparent;box-shadow:none}}
-.prov-pill{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;border-radius:6px;background:rgba(255,255,255,0.85);border:1px solid rgba(0,0,0,.08);cursor:pointer;transition:all .15s ease;gap:6px;min-height:32px;flex:1 1 calc(33% - 3px);min-width:90px}
+.prov-pill{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;background:transparent;border:0.5px solid rgba(0,0,0,0.15);cursor:pointer;transition:all .15s ease;}
 .prov-pill:hover{background:rgba(255,255,255,.78);border-color:rgba(0,0,0,.14);transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
 .prov-pill.active{background:rgba(192,57,43,.12);border-color:rgba(192,57,43,.35)}
-.prov-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.prov-name{font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;}
 .prov-pill.active .prov-name{color:var(--red)}
-.rdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:rgba(0,0,0,.12)}
+.rdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;background:rgba(0,0,0,.15)}
 .rdot.high{background:#e03535;box-shadow:0 0 5px rgba(224,53,53,.5)}
 .rdot.mid{background:#e8a800;box-shadow:0 0 5px rgba(232,168,0,.4)}
 .rdot.low{background:#1a9a52;box-shadow:0 0 5px rgba(26,154,82,.4)}
@@ -215,23 +212,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   .map-area::before{display:none}
 
   /* Accordion mobilde de aynı */
-  .regions{width:100%;max-width:100%;border-radius:10px;overflow:hidden;}
-
-  /* Kart */
-  .region-card{border-radius:0;overflow:hidden;}
-  .region-card:first-child{border-radius:10px 10px 0 0;}
-  .region-card:last-child{border-radius:0 0 10px 10px;}
-
-  /* Başlık */
-  .region-title{font-size:11px;padding:12px 14px;}
-
-  /* İl hapı mobil */
-  .prov-pill{flex:1 1 calc(33% - 3px);min-width:80px;padding:5px 8px;min-height:30px;}
-  .prov-name{font-size:11px;}
-  .rdot{width:6px;height:6px;}
-
-  /* Açık kart */
-  .region-card.open .prov-list{padding:8px;}
+  .regions{width:100%;max-width:100%;border-radius:8px;overflow:hidden;}
+  .region-card{flex-direction:column;}
+  .region-title{width:100%;min-width:unset;border-right:none;border-bottom:0.5px solid rgba(0,0,0,0.08);justify-content:flex-start;text-align:left;padding:6px 10px;font-size:8px;}
+  .prov-list{padding:5px 8px;}
+  .prov-pill{padding:3px 7px;}
+  .prov-name{font-size:10px;}
 
   /* Panel — alttan drawer */
   .panel{
@@ -1151,21 +1137,14 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
 const regionsEl = document.getElementById('regions');
 REGIONS.forEach((reg, regIdx) => {
   const card = document.createElement('div');
-  card.className = 'region-card' + (regIdx === 0 ? ' open' : '');
+  card.className = 'region-card';
   const title = document.createElement('div');
   title.className = 'region-title';
 
   const titleText = document.createElement('span');
   titleText.textContent = reg.title;
-  const arrow = document.createElement('span');
-  arrow.className = 'region-arrow';
-  arrow.textContent = '⌄';
-  arrow.style.cssText = 'font-size:16px;transition:transform .3s ease;display:inline-block;';
   title.appendChild(titleText);
-  title.appendChild(arrow);
-  title.addEventListener('click', () => {
-    card.classList.toggle('open');
-  });
+
   card.appendChild(title);
   let list = document.createElement('div');
   list.className = 'prov-list';
