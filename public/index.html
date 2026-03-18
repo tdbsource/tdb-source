@@ -239,6 +239,103 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
   .mob-overlay{display:none !important}
 }
+
+/* ── SOHBET ─────────────────────────────────────────────────────────────── */
+.sohbet-btn{
+  position:fixed;bottom:80px;right:16px;z-index:500;
+  width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,#1a56db,#06b6d4);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(26,86,219,0.4);
+  transition:transform .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.sohbet-btn:hover{transform:scale(1.08)}
+.sohbet-badge{
+  position:absolute;top:-4px;right:-4px;
+  background:#e03535;color:#fff;
+  font-size:9px;font-weight:700;
+  width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  display:none;
+}
+.sohbet-panel{
+  position:fixed;bottom:0;right:0;z-index:600;
+  width:340px;max-width:100vw;
+  height:520px;max-height:85dvh;
+  background:rgba(220,224,230,0.97);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:14px 14px 0 0;
+  border-top:1px solid rgba(255,255,255,0.6);
+  box-shadow:0 -4px 24px rgba(0,0,0,0.15);
+  display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.sohbet-panel.open{transform:translateY(0)}
+.sohbet-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;
+  border-bottom:1px solid rgba(0,0,0,0.08);
+  background:rgba(255,255,255,0.5);
+  backdrop-filter:blur(8px);
+  border-radius:14px 14px 0 0;
+  flex-shrink:0;
+}
+.sohbet-baslik{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#111;}
+.sohbet-kapat{background:none;border:none;font-size:18px;cursor:pointer;color:#555;padding:0 4px;}
+.sohbet-mesajlar{
+  flex:1;overflow-y:auto;padding:10px 12px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.sohbet-mesajlar::-webkit-scrollbar{width:3px}
+.sohbet-mesajlar::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:2px}
+.s-mesaj{
+  display:flex;flex-direction:column;gap:2px;
+  padding:7px 10px;border-radius:8px;
+  background:rgba(255,255,255,0.65);
+  border:0.5px solid rgba(0,0,0,0.08);
+  position:relative;
+}
+.s-mesaj.benim{background:rgba(26,86,219,0.12);border-color:rgba(26,86,219,0.2);}
+.s-mesaj.admin-msg{background:rgba(245,200,0,0.12);border-color:rgba(245,200,0,0.3);}
+.s-ust{display:flex;align-items:center;gap:6px;}
+.s-isim{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:#333;}
+.s-isim.admin-isim{color:#b45309;}
+.s-zaman{font-family:'JetBrains Mono',monospace;font-size:8px;color:#aaa;}
+.s-txt{font-size:12px;color:#222;line-height:1.5;word-break:break-word;}
+.s-engelle{
+  position:absolute;top:6px;right:8px;
+  background:none;border:none;font-size:10px;
+  color:#ccc;cursor:pointer;padding:0;
+  display:none;
+}
+.s-mesaj:hover .s-engelle{display:block}
+.sohbet-alt{
+  padding:10px 12px;border-top:1px solid rgba(0,0,0,0.08);
+  display:flex;gap:8px;align-items:center;
+  flex-shrink:0;
+  background:rgba(255,255,255,0.4);
+}
+.sohbet-input{
+  flex:1;padding:8px 12px;border-radius:8px;
+  border:1px solid rgba(0,0,0,0.12);
+  background:rgba(255,255,255,0.8);
+  font-size:12px;font-family:'Syne',sans-serif;
+  outline:none;
+}
+.sohbet-gonder{
+  padding:8px 14px;border-radius:8px;
+  background:linear-gradient(135deg,#1a56db,#06b6d4);
+  border:none;color:#fff;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:'Syne',sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+.s-abone-uyari{
+  font-size:11px;color:#888;text-align:center;
+  padding:6px;font-family:'JetBrains Mono',monospace;
+}
 </style>
 </head>
 <body>
@@ -283,7 +380,28 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <div class="body">
   <div class="map-area" style="display:flex;flex-direction:column;">
     <div class="regions" id="regions" style="flex:1;min-height:0;"></div>
-        <div style="flex-shrink:0;box-sizing:border-box;width:calc(100% - 40px);margin:6px auto 6px;background:linear-gradient(135deg,#0a0a1a 0%,#0d2a6e 50%,#050d1f 100%);border:2px solid #111;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;min-height:72px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
+        <!-- SOHBET BUTONU -->
+    <button class="sohbet-btn" id="sohbetBtn" onclick="sohbetAc()">
+      <span class="sohbet-badge" id="sohbetBadge"></span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+
+    <!-- SOHBET PANELİ -->
+    <div class="sohbet-panel" id="sohbetPanel">
+      <div class="sohbet-header">
+        <span class="sohbet-baslik">💬 Anlık Sohbet</span>
+        <button class="sohbet-kapat" onclick="sohbetKapat()">✕</button>
+      </div>
+      <div class="sohbet-mesajlar" id="sohbetMesajlar">
+        <div style="text-align:center;padding:20px;color:#aaa;font-size:11px;">Yükleniyor...</div>
+      </div>
+      <div class="sohbet-alt" id="sohbetAlt">
+        <input class="sohbet-input" id="sohbetInput" placeholder="Mesajını yaz..." maxlength="200" onkeydown="if(event.key==='Enter')mesajGonder()"/>
+        <button class="sohbet-gonder" onclick="mesajGonder()">Gönder</button>
+      </div>
+    </div>
+
+    <div style="flex-shrink:0;box-sizing:border-box;width:calc(100% - 40px);margin:6px auto 6px;background:linear-gradient(135deg,#0a0a1a 0%,#0d2a6e 50%,#050d1f 100%);border:2px solid #111;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;min-height:72px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
       <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(90deg,#a78bfa,#38bdf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Reklam Alan&#305;</div>
       <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:600;margin-top:6px;letter-spacing:.04em;"><span style="color:#f5c800;">&#304;leti&#351;im:</span> <span style="color:#ffffff;">info&#64;tdbsource&#46;tr</span></div>
     </div>
@@ -1272,6 +1390,7 @@ fetchKandilli();
 // Her 2 dakikada bir güncelle
 setInterval(fetchKandilli, 30 * 1000);
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignal = window.OneSignal || [];
@@ -1283,6 +1402,157 @@ setInterval(fetchKandilli, 30 * 1000);
       allowLocalhostAsSecureOrigin: true,
     });
   });
+
+// ── SOHBET SİSTEMİ ────────────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://nskwxgdiehvrzzznhljp.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5za3d4Z2RpZWh2cnp6em5obGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDcxNjYsImV4cCI6MjA4OTQyMzE2Nn0.7uWBf8_oI-Fwg-HCawL-Jmqw0zzeJHOg3BJlAZeWAT0';
+const ADMIN_IDS     = []; // Admin kullanici_id'lerini buraya ekle
+const sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Kullanıcı kimliği
+function getUserId() {
+  let uid = localStorage.getItem('tdb_uid');
+  if (!uid) {
+    uid = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('tdb_uid', uid);
+  }
+  return uid;
+}
+
+// Rastgele kullanıcı adı — değiştirilemez
+const ISIMLER = ['Sismik','Fay','Richter','Tektonik','Plaka','Seismos','Deprem','Mercalli','Volkan','Kabuk','Mantle','Magma','Sismos','Artçı','Öncü'];
+function getUserAdi() {
+  let adi = localStorage.getItem('tdb_adi');
+  if (!adi) {
+    const isim = ISIMLER[Math.floor(Math.random() * ISIMLER.length)];
+    const sayi = Math.floor(Math.random() * 9000) + 1000;
+    adi = isim + sayi;
+    localStorage.setItem('tdb_adi', adi);
+  }
+  return adi;
+}
+
+const myId  = getUserId();
+const myAdi = getUserAdi();
+let sohbetAcik = false;
+let yeniMesajSayisi = 0;
+
+function sohbetAc() {
+  sohbetAcik = true;
+  document.getElementById('sohbetPanel').classList.add('open');
+  yeniMesajSayisi = 0;
+  const badge = document.getElementById('sohbetBadge');
+  badge.style.display = 'none';
+  mesajlariYukle();
+}
+
+function sohbetKapat() {
+  sohbetAcik = false;
+  document.getElementById('sohbetPanel').classList.remove('open');
+}
+
+function zamanFormat(ts) {
+  const d = new Date(ts);
+  return d.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function mesajHTML(m) {
+  const benim = m.kullanici_id === myId;
+  const isAdmin = ADMIN_IDS.includes(m.kullanici_id);
+  const engelleBtnHTML = !benim ? `<button class="s-engelle" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>` : '';
+  return `<div class="s-mesaj${benim?' benim':''}${isAdmin?' admin-msg':''}" data-uid="${m.kullanici_id}">
+    <div class="s-ust">
+      <span class="s-isim${isAdmin?' admin-isim':''}">${isAdmin?'⭐ ':''} ${m.kullanici_adi}</span>
+      <span class="s-zaman">${zamanFormat(m.olusturuldu)}</span>
+    </div>
+    <div class="s-txt">${m.mesaj.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    ${engelleBtnHTML}
+  </div>`;
+}
+
+async function mesajlariYukle() {
+  if (!sb) return;
+  const { data } = await sb.from('mesajlar')
+    .select('*')
+    .eq('engellendi', false)
+    .order('olusturuldu', {ascending: true})
+    .limit(100);
+
+  if (!data) return;
+
+  // Engelli kullanıcıları filtrele
+  const { data: engeller } = await sb.from('engelliler').select('kullanici_id');
+  const engelliler = new Set((engeller||[]).map(e => e.kullanici_id));
+
+  const el = document.getElementById('sohbetMesajlar');
+  const mesajlar = data.filter(m => !engelliler.has(m.kullanici_id));
+
+  if (mesajlar.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:11px;font-family:JetBrains Mono,monospace;">Henüz mesaj yok. İlk sen yaz!</div>';
+    return;
+  }
+
+  el.innerHTML = mesajlar.map(mesajHTML).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function mesajGonder() {
+  if (!sb) return;
+  const input = document.getElementById('sohbetInput');
+  const mesaj = input.value.trim();
+  if (!mesaj) return;
+
+  // Abone kontrolü
+  let subId = null;
+  try { subId = window.OneSignal?.User?.PushSubscription?.id || null; } catch(e) {}
+  const anonId = localStorage.getItem('tdb_anon_id');
+
+  if (!subId && !anonId) {
+    document.getElementById('sohbetAlt').innerHTML = '<div class="s-abone-uyari">Mesaj göndermek için bildirim abonesi olman gerekiyor.</div>';
+    return;
+  }
+
+  input.value = '';
+  await sb.from('mesajlar').insert({
+    kullanici_id: myId,
+    kullanici_adi: myAdi,
+    mesaj: mesaj,
+    engellendi: false
+  });
+}
+
+async function engelleKullanici(uid, adi) {
+  if (!ADMIN_IDS.includes(myId)) return;
+  if (!confirm(adi + ' kullanıcısını engellemek istiyor musun?')) return;
+  await sb.from('engelliler').insert({ kullanici_id: uid });
+  await sb.from('mesajlar').update({ engellendi: true }).eq('kullanici_id', uid);
+  mesajlariYukle();
+}
+
+// Gerçek zamanlı güncelleme
+if (sb) {
+  sb.channel('mesajlar')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mesajlar' }, async (payload) => {
+      const m = payload.new;
+      if (m.engellendi) return;
+      const { data: engeller } = await sb.from('engelliler').select('kullanici_id');
+      const engelliler = new Set((engeller||[]).map(e => e.kullanici_id));
+      if (engelliler.has(m.kullanici_id)) return;
+
+      const el = document.getElementById('sohbetMesajlar');
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+      el.innerHTML += mesajHTML(m);
+      if (atBottom) el.scrollTop = el.scrollHeight;
+
+      if (!sohbetAcik) {
+        yeniMesajSayisi++;
+        const badge = document.getElementById('sohbetBadge');
+        badge.style.display = 'flex';
+        badge.textContent = yeniMesajSayisi > 9 ? '9+' : yeniMesajSayisi;
+      }
+    })
+    .subscribe();
+}
 
   // Sayfa açılınca 3 saniye sonra bildirim izni iste
   setTimeout(async () => {
