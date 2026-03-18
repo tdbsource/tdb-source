@@ -343,7 +343,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   align-self:center;
   display:none;
 }
-.s-satir:hover .s-engelle-btn{display:block;}
+.s-satir.aktif .s-engelle-btn{display:block;}
 .alinti-bar{
   background:rgba(251,146,60,0.15);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -1436,14 +1436,18 @@ function mesajaBasiliTut(m) {
 function mesajHTML(m, alintMi) {
   const benim   = m.kullanici_id === myId;
   const admin   = isAdmin(m.kullanici_adi, m.kullanici_id);
-  const engelle = (!benim && ADMIN_IDS.includes(myId))
-    ? `<button class="s-engelle-btn" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
+  const kisiselEngel = (!benim)
+    ? `<button class="s-engelle-btn" onclick="kisiselEngelle('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
     : '';
+  const adminEngel = (!benim && ADMIN_IDS.includes(myId))
+    ? `<button class="s-engelle-btn admin-engel" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')" style="background:rgba(220,40,40,0.25);border-color:rgba(220,40,40,0.5);">🔴</button>`
+    : '';
+  const engelle = kisiselEngel;
   const alintHTML = m.alinti_adi
     ? `<div class="s-alinti"><b>${m.alinti_adi}:</b> ${(m.alinti_txt||'').replace(/</g,'&lt;').slice(0,60)}</div>`
     : '';
   const alintUyari = alintMi ? ' alinti-uyari' : '';
-  return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}">
+  return `<div class="s-satir ${benim?'benim':'diger'}" data-id="${m.id}" onclick="mesajTikla(this)">
     ${!benim ? `<div class="s-ust"><span class="s-isim${admin?' admin-isim':''}">${m.kullanici_adi}${admin?' 👑':''}</span></div>` : ''}
     <div style="display:flex;align-items:flex-end;gap:6px;${benim?'justify-content:flex-end;':''}">
       <div class="s-mesaj${admin?' admin-msg':''}${alintUyari}" data-id="${m.id}"
@@ -1476,7 +1480,8 @@ async function mesajlariYukle() {
 
   const { data: eng } = await sb.from('engelliler').select('kullanici_id');
   const engSet = new Set((eng||[]).map(e => e.kullanici_id));
-  const filtreli = data.filter(m => !engSet.has(m.kullanici_id));
+  const kisiselEngeller = new Set(getKisiselEngeller());
+  const filtreli = data.filter(m => !engSet.has(m.kullanici_id) && !kisiselEngeller.has(m.kullanici_id));
 
   const el = document.getElementById('sohbetMesajlar');
   if (filtreli.length === 0) {
@@ -1504,7 +1509,8 @@ async function yeniMesajlariKontrolEt() {
   const el = document.getElementById('sohbetMesajlar');
   const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
 
-  data.filter(m => !engSet.has(m.kullanici_id)).forEach(m => {
+  const kisiselEngeller2 = new Set(getKisiselEngeller());
+  data.filter(m => !engSet.has(m.kullanici_id) && !kisiselEngeller2.has(m.kullanici_id)).forEach(m => {
     if (document.querySelector(`.s-satir[data-id="${m.id}"]`)) return;
     const alintMi = m.alinti_adi === myAdi;
     el.innerHTML += mesajHTML(m, alintMi);
@@ -1547,6 +1553,32 @@ async function mesajGonder() {
   }
 }
 
+function getKisiselEngeller() {
+  try { return JSON.parse(localStorage.getItem('tdb_engel') || '[]'); } catch(e) { return []; }
+}
+
+function mesajTikla(satir) {
+  // Diğer aktif satırları kapat
+  document.querySelectorAll('.s-satir.aktif').forEach(el => {
+    if (el !== satir) el.classList.remove('aktif');
+  });
+  satir.classList.toggle('aktif');
+}
+
+function kisiselEngelle(uid, adi) {
+  if (!confirm(adi + ' adlı kullanıcıyı kendiniz için engellemek istiyor musunuz?')) return;
+  const liste = getKisiselEngeller();
+  if (!liste.includes(uid)) {
+    liste.push(uid);
+    localStorage.setItem('tdb_engel', JSON.stringify(liste));
+  }
+  // O kişinin mesajlarını ekrandan kaldır
+  document.querySelectorAll('.s-satir').forEach(el => {
+    const isim = el.querySelector('.s-isim');
+    if (isim && isim.textContent.replace(' 👑','').trim() === adi) el.remove();
+  });
+}
+
 async function engelleKullanici(uid, adi) {
   if (!ADMIN_IDS.includes(myId)) return;
   if (!confirm(adi + ' adlı kullanıcıyı engellemek istediğinizden emin misiniz?')) return;
@@ -1581,6 +1613,7 @@ async function engelleKullanici(uid, adi) {
       </div>
       <button class="sohbet-kapat" onclick="sohbetKapat()">✕</button>
     </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#e03535;text-align:center;padding:5px 12px;animation:uyariblink 1.5s ease-in-out infinite;border-bottom:0.5px solid rgba(0,0,0,0.06);flex-shrink:0;">Engellemek istediğiniz kullanıcının mesajına dokunun.</div>
     <div class="sohbet-mesajlar" id="sohbetMesajlar">
       <div style="text-align:center;padding:20px;color:#aaa;font-size:11px;">Yükleniyor...</div>
     </div>
