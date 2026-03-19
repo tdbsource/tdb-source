@@ -328,7 +328,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .s-mesaj.admin-msg .s-alinti b{color:#fff;}
 .s-satir.benim .s-alinti{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.7);}
 .s-ust{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
-.s-isim{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:#333;}
+.s-isim{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:#444;letter-spacing:.01em;}
 .s-satir.benim .s-isim{display:none;}
 .s-isim.admin-isim{color:#b45309;}
 .s-zaman{font-family:'JetBrains Mono',monospace;font-size:8px;color:#aaa;margin-top:2px;padding:0 2px;}
@@ -1432,7 +1432,8 @@ function sohbetAc() {
   sohbetAcik = true;
   document.getElementById('sohbetPanel').classList.add('open');
   document.getElementById('sohbetOverlay').style.display = 'block';
-  document.getElementById('sohbetKullanici').textContent = 'Sen: ' + myAdi + ' | ID: ' + myId;
+  const kullaniciEl = document.getElementById('sohbetKullanici');
+  kullaniciEl.innerHTML = '<span style="color:#333;font-weight:700;font-size:11px;">' + myAdi + '</span>';
   yeniMesajSayisi = 0;
   document.getElementById('sohbetBadge').style.display = 'none';
   document.getElementById('sohbetBadge').textContent = '';
@@ -1481,7 +1482,7 @@ function mesajHTML(m, alintMi) {
     ? `<button class="s-engelle-btn" style="display:none;" onclick="kisiselEngelle('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
     : '';
   // Admin paneli: blok + doğrulama butonu
-  const adminButonlar = (!benim && !admin && ADMIN_IDS.includes(myId))
+  const adminButonlar = (!benim && ADMIN_IDS.includes(myId))
     ? `<div class="admin-btn-grup" style="display:none;flex-direction:column;gap:4px;align-self:center;">
         <button class="s-engelle-btn" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>
         <button class="s-dogrula-btn" onclick="dogrulaKullanici('${m.kullanici_id}','${m.kullanici_adi}',this)">✚</button>
@@ -1525,8 +1526,11 @@ async function mesajlariYukle() {
 
   const { data: eng } = await sb.from('engelliler').select('kullanici_id');
   const engSet = new Set((eng||[]).map(e => e.kullanici_id));
+  const { data: verifiedList } = await sb.from('verified_users').select('kullanici_id');
+  const verifiedSet = new Set((verifiedList||[]).map(v => v.kullanici_id));
   const kisiselEngeller = new Set(getKisiselEngeller());
   const filtreli = data.filter(m => !engSet.has(m.kullanici_id) && !kisiselEngeller.has(m.kullanici_id));
+  filtreli.forEach(m => { m.verified = verifiedSet.has(m.kullanici_id); });
 
   const el = document.getElementById('sohbetMesajlar');
   if (filtreli.length === 0) {
@@ -1600,36 +1604,34 @@ async function mesajGonder() {
 
 async function dogrulaKullanici(uid, adi, btn) {
   if (!ADMIN_IDS.includes(myId)) return;
-  // Mevcut durumu kontrol et
-  const { data } = await sb.from('mesajlar')
-    .select('verified')
-    .eq('kullanici_id', uid)
-    .limit(1);
-  const mevcutVerified = data?.[0]?.verified || false;
-  const yeniDurum = !mevcutVerified;
-  const onayMesaj = yeniDurum
-    ? adi + ' için doğrulama rozeti eklensin mi?'
-    : adi + ' için doğrulama rozeti kaldırılsın mı?';
-  if (!confirm(onayMesaj)) return;
-  await sb.from('mesajlar').update({ verified: yeniDurum }).eq('kullanici_id', uid);
-  // Ekrandaki tüm mesajlarını güncelle
+  const { data: mevcut } = await sb.from('verified_users').select('id').eq('kullanici_id', uid);
+  const zatenVar = mevcut && mevcut.length > 0;
+  const onay = zatenVar
+    ? adi + ' için doğrulama rozeti kaldırılsın mı?'
+    : adi + ' için doğrulama rozeti eklensin mi?';
+  if (!confirm(onay)) return;
+  if (zatenVar) {
+    await sb.from('verified_users').delete().eq('kullanici_id', uid);
+  } else {
+    await sb.from('verified_users').insert({ kullanici_id: uid, kullanici_adi: adi });
+  }
+  // Ekranı güncelle
   document.querySelectorAll('.s-satir').forEach(el => {
     const isim = el.querySelector('.s-isim');
     if (!isim) return;
-    const ad = isim.textContent.replace(' 👑','').replace('✓','').trim();
-    if (ad === adi) {
+    const ad = isim.textContent.replace('👑','').replace('✓','').trim();
+    if (ad.trim() === adi.trim()) {
       const badge = isim.querySelector('.verified-badge');
-      if (yeniDurum && !badge) {
+      if (!zatenVar && !badge) {
         const b = document.createElement('span');
         b.className = 'verified-badge';
         b.textContent = '✓';
         isim.appendChild(b);
-      } else if (!yeniDurum && badge) {
+      } else if (zatenVar && badge) {
         badge.remove();
       }
     }
   });
-  btn.style.background = yeniDurum ? 'rgba(26,86,219,0.3)' : '';
 }
 
 function getKisiselEngeller() {
