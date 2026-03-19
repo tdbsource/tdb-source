@@ -363,8 +363,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   align-self:center;
   display:none;
 }
-.s-satir.aktif .s-engelle-btn{display:block;}
-.s-satir.aktif .s-dogrula-btn{display:block;}
+.s-satir.aktif .s-engelle-btn{display:block !important;}
+.s-satir.aktif .s-dogrula-btn{display:block !important;}
 .s-satir.aktif .admin-btn-grup{display:flex !important;}
 .s-satir.aktif .s-dogrula-btn{
   background:rgba(26,86,219,0.15);
@@ -1478,7 +1478,7 @@ function mesajHTML(m, alintMi) {
   const admin   = isAdmin(m.kullanici_adi, m.kullanici_id);
   // Admin mesajlarında engel butonu çıkmasın
   const kisiselEngel = (!benim && !admin)
-    ? `<button class="s-engelle-btn" onclick="kisiselEngelle('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
+    ? `<button class="s-engelle-btn" style="display:none;" onclick="kisiselEngelle('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
     : '';
   // Admin paneli: blok + doğrulama butonu
   const adminButonlar = (!benim && !admin && ADMIN_IDS.includes(myId))
