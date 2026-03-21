@@ -421,9 +421,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" role="application" aria-label="TDB Source Deprem İzleme Platformu">
 
-<div class="ticker">
+<div class="ticker" role="marquee" aria-label="Canlı deprem akışı" aria-live="polite">
   <div class="t-label"><span class="t-dot"></span>CANLI</div>
   <div class="t-wrap"><div class="t-track" id="ttrack"></div></div>
 </div>
@@ -461,7 +461,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 <div class="body">
   <div class="map-area" style="display:flex;flex-direction:column;">
-    <div class="regions" id="regions" style="flex:1;min-height:0;"></div>
+    <div class="regions" id="regions" role="navigation" aria-label="Türkiye bölgeleri ve iller" style="flex:1;min-height:0;"></div>
     
 
     <div style="flex-shrink:0;box-sizing:border-box;width:calc(100% - 40px);margin:6px auto 6px;background:linear-gradient(135deg,#0a0a1a 0%,#0d2a6e 50%,#050d1f 100%);border:2px solid #111;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;min-height:72px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
@@ -469,7 +469,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:600;margin-top:6px;letter-spacing:.04em;"><span style="color:#f5c800;">&#304;leti&#351;im:</span> <span style="color:#ffffff;">info&#64;tdbsource&#46;tr</span></div>
     </div>
   </div>
-  <div class="panel" id="panel">
+  <div class="panel" id="panel" role="complementary" aria-label="İl deprem analizi">
     <div class="p-head">
       <div class="p-top">
         <div class="p-city" id="pCity">—</div>
@@ -477,12 +477,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       </div>
       <div class="ai-block">
         <div class="ai-tag"><div class="ai-ico">✦</div><span class="ai-tag-lbl">Source Gen 8 Analiz</span></div>
-        <div class="ai-txt" id="aiTxt"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
+        <div class="ai-txt" id="aiTxt" aria-live="polite" aria-label="Bölge analizi"><span class="ai-loading"><span class="ai-spinner"></span>Bir il seçin...</span></div>
         <div class="risk-pill" id="rPill"></div>
 
       </div>
     </div>
-    <div class="tabs">
+    <div class="tabs" role="tablist">
       <div class="tab active" data-tab="act">Civar Hareketler</div>
       <div class="tab" data-tab="pred">Tahmin</div>
     </div>
@@ -1283,7 +1283,11 @@ REGIONS.forEach((reg, regIdx) => {
     }
     pill.className = 'prov-pill';
     pill.dataset.id = p.id;
-    pill.innerHTML = `<span class="prov-name">${p.n}</span>${p.r ? `<span class="rdot ${p.r}"></span>` : '<span class="rdot"></span>'}`;
+    const riskLabel = p.r === 'high' ? 'Yüksek risk' : p.r === 'mid' ? 'Orta risk' : 'Düşük risk';
+    pill.innerHTML = `<span class="prov-name">${p.n}</span>${p.r ? `<span class="rdot ${p.r}" aria-hidden="true"></span>` : '<span class="rdot" aria-hidden="true"></span>'}`;
+    pill.setAttribute('aria-label', p.n + ', ' + riskLabel + '. Analiz için dokunun.');
+    pill.setAttribute('role', 'button');
+    pill.setAttribute('tabindex', '0');
     pill.addEventListener('click', () => openPanel(p.id, p.n));
     list.appendChild(pill);
   });
@@ -1415,7 +1419,7 @@ async function bildirimAboneOl() {
     await OneSignal.Notifications.requestPermission();
     await new Promise(r => setTimeout(r, 1500));
     // Abone olduktan sonra input'u geri getir
-    document.getElementById('sohbetAlt').innerHTML = '<input class="sohbet-input" id="sohbetInput" placeholder="Mesajini yaz..." maxlength="200"/><button class="sohbet-gonder" onclick="mesajGonder()">Gonder</button>';
+    document.getElementById('sohbetAlt').innerHTML = '<input class="sohbet-input" id="sohbetInput" aria-label="Mesaj yaz" placeholder="Mesajini yaz..." maxlength="200"/><button class="sohbet-gonder" onclick="mesajGonder()">Gonder</button>';
   } catch(e) {}
 }
 
@@ -1676,7 +1680,7 @@ async function engelleKullanici(uid, adi) {
 
 </script>
   <!-- SOHBET BUTONU -->
-  <button class="sohbet-btn" id="sohbetBtn" onclick="if(typeof sohbetAc==='function')sohbetAc()">
+  <button class="sohbet-btn" id="sohbetBtn" aria-label="Anlık sohbeti aç" onclick="if(typeof sohbetAc==='function')sohbetAc()">
     <span class="sohbet-badge" id="sohbetBadge"></span>
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   </button>
@@ -1692,7 +1696,7 @@ async function engelleKullanici(uid, adi) {
           <button id="adiDegistirBtn" onclick="adiDegistir()" title="Kullanıcı adını değiştir" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:#888;font-size:13px;line-height:1;-webkit-tap-highlight-color:transparent;">✏️</button>
         </div>
       </div>
-      <button class="sohbet-kapat" onclick="sohbetKapat()">✕</button>
+      <button class="sohbet-kapat" onclick="sohbetKapat()" aria-label="Sohbeti kapat">✕</button>
     </div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#e03535;text-align:center;padding:5px 12px;animation:uyariblink 1.5s ease-in-out infinite;border-bottom:0.5px solid rgba(0,0,0,0.06);flex-shrink:0;">Engellemek istediğiniz kullanıcının mesajına dokunun.</div>
     <div class="sohbet-mesajlar" id="sohbetMesajlar">
@@ -1703,8 +1707,8 @@ async function engelleKullanici(uid, adi) {
       <button class="alinti-iptal" onclick="alintIptal()">✕</button>
     </div>
     <div class="sohbet-alt" id="sohbetAlt">
-      <input class="sohbet-input" id="sohbetInput" placeholder="Mesajını yaz..." maxlength="200" onkeydown="if(event.key==='Enter')mesajGonder()"/>
-      <button class="sohbet-gonder" onclick="mesajGonder()">Gönder</button>
+      <input class="sohbet-input" id="sohbetInput" aria-label="Mesaj yaz" placeholder="Mesajını yaz..." maxlength="200" onkeydown="if(event.key==='Enter')mesajGonder()"/>
+      <button class="sohbet-gonder" onclick="mesajGonder()" aria-label="Mesajı gönder">Gönder</button>
     </div>
   </div>
 </body>
