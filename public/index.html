@@ -241,17 +241,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 }
 
 /* ── SOHBET ─────────────────────────────────────────────────────────────── */
-.sohbet-btn{
-  position:fixed;bottom:80px;right:16px;z-index:500;
-  width:46px;height:46px;border-radius:50%;
-  background:linear-gradient(135deg,#1a56db,#06b6d4);
-  border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 16px rgba(26,86,219,0.4);
-  transition:transform .2s;
-  -webkit-tap-highlight-color:transparent;
-}
-.sohbet-btn:hover{transform:scale(1.08)}
+
 .sohbet-badge{
   position:absolute;top:-3px;right:-3px;
   background:#e03535;
@@ -464,8 +454,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="regions" id="regions" role="navigation" aria-label="Türkiye bölgeleri ve iller" style="flex:1;min-height:0;"></div>
     
 
-    <div style="flex-shrink:0;box-sizing:border-box;width:calc(100% - 40px);margin:6px auto 6px;background:linear-gradient(135deg,#0a0a1a 0%,#0d2a6e 50%,#050d1f 100%);border:2px solid #111;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;min-height:72px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
-      <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(90deg,#a78bfa,#38bdf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Reklam Alan&#305;</div>
+
       <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:600;margin-top:6px;letter-spacing:.04em;"><span style="color:#f5c800;">&#304;leti&#351;im:</span> <span style="color:#ffffff;">info&#64;tdbsource&#46;tr</span></div>
     </div>
   </div>
@@ -1679,11 +1668,23 @@ async function engelleKullanici(uid, adi) {
 
 
 </script>
-  <!-- SOHBET BUTONU -->
-  <button class="sohbet-btn" id="sohbetBtn" aria-label="Anlık sohbeti aç" onclick="if(typeof sohbetAc==='function')sohbetAc()">
-    <span class="sohbet-badge" id="sohbetBadge"></span>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-  </button>
+  
+
+  <!-- SOHBET BUTONU - yatay, altta -->
+  <div style="flex-shrink:0;padding:6px 12px;">
+    <button id="sohbetBtn" aria-label="Anlık sohbeti aç" onclick="if(typeof sohbetAc==='function')sohbetAc()" style="
+      width:100%;padding:10px 16px;
+      background:linear-gradient(135deg,#1a56db,#06b6d4);
+      border:none;border-radius:10px;color:#fff;
+      font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+      -webkit-tap-highlight-color:transparent;position:relative;
+    ">
+      <span class="sohbet-badge" id="sohbetBadge" style="position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:#e03535;display:none;border:2px solid #fff;"></span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Anlık Sohbet
+    </button>
+  </div>
 
   <!-- SOHBET PANELİ - tam ekran overlay -->
   <div id="sohbetOverlay" onclick="sohbetKapat()" style="display:none;position:fixed;inset:0;z-index:599;background:rgba(0,0,0,0.3);"></div>
