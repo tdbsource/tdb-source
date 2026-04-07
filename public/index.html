@@ -527,7 +527,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 
-// ── 81 İL BAĞLAM VERİTABANI — fay hattı, jeolojik yapı, tarihsel risk ────
+
 const IL_CTX = {
   istanbul:    {fay:"Kuzey Anadolu Fayı'nın Marmara kolu üzerinde",    not:"1999 Gölcük depreminin ardından KAF'ın İstanbul geçişinde büyük deprem birikimi sürüyor"},
   kocaeli:     {fay:"Kuzey Anadolu Fayı'nın ana kolu üzerinde",        not:"1999 Mw7.6 İzmit depremiyle tanınan, Türkiye'nin en aktif fay segmentlerinden birini barındırır"},
@@ -610,7 +610,7 @@ const IL_CTX = {
   zonguldak:   {fay:"Kuzey Anadolu Fayı'nın Batı Karadeniz kolları yakınında", not:"KAF'ın Düzce-Bolu segmentine yakınlığıyla orta düzey sismik aktivite gözlemlenir"},
   bartin:      {fay:"Kuzey Anadolu Fayı Batı Karadeniz segmenti etkisinde", not:"KAF'ın kuzey kolundan etkilenen kıyı şeridi; zaman zaman hissedilen sarsıntılar kaydedilir"},
   karabuk:     {fay:"Kuzey Anadolu Fayı yakın kuşağında",               not:"Safranbolu çevresindeki yerel faylar ve KAF güney kolu bölgede orta düzey aktiviteye yol açar"},
-};// ── BÖLGELER ──────────────────────────────────────────────────────────────
+};
 const REGIONS = [
   { id:'marmara', title:'Marmara', provs:[
     {id:'istanbul',n:'İstanbul',r:'high'},{id:'edirne',n:'Edirne',r:''},
@@ -671,7 +671,7 @@ const REGIONS = [
   ]},
 ];
 
-// ── İL ID → AFAD PROVINCE ALANI EŞLEŞTİRME ────────────────────────────
+
 const PROV_MAP = {
   istanbul:'istanbul',izmir:'izmir',ankara:'ankara',bursa:'bursa',
   kocaeli:'kocaeli',sakarya:'sakarya',duzce:'düzce',tekirdag:'tekirdağ',
@@ -697,8 +697,7 @@ const PROV_MAP = {
   tokat:'tokat',gumushane:'gümüşhane',bayburt:'bayburt',
 };
 
-// ── İL → KOORDINAT (province eşleşmezse fallback) ──────────────────────
-// Her ilin merkez koordinatı + yarıçap (derece) — EMSC province vermez, koordinat ile eşleştirilir
+
 const CITY_COORDS = {
   istanbul: {lat:41.01,lon:28.96,r:0.8},
   izmir:    {lat:38.42,lon:27.14,r:1.8},
@@ -783,9 +782,7 @@ const CITY_COORDS = {
   bayburt:  {lat:40.26,lon:40.23,r:0.7},
 };
 
-// ── KANDILLI RSS → JSON proxy ─────────────────────────────────────────────
-// CORS-free proxy üzerinden Kandilli verisi çekiyoruz
-// Türkçe + Latin karakter normalize
+
 function normProv(s) {
   if (!s) return '';
   return s.trim()
@@ -793,8 +790,7 @@ function normProv(s) {
     .replace(/İ/g,'i').replace(/I/g,'ı')
     .replace(/Ü/g,'ü').replace(/Ö/g,'ö')
     .replace(/Ç/g,'ç').replace(/Ş/g,'ş').replace(/Ğ/g,'ğ')
-    // EMSC bazen ASCII yazar: izmir=izmir, istanbul=istanbul (zaten OK)
-    // Türkçe karşılıkları normalize et
+    
     .replace(/gumushane/g,'gümüşhane')
     .replace(/canakkale/g,'çanakkale')
     .replace(/duzce/g,'düzce')
@@ -824,7 +820,7 @@ async function fetchKandilli() {
     const now = Date.now();
     const dayAgo = now - 24*60*60*1000;
 
-    // Yeni deprem tespiti — önceki ID listesiyle karşılaştır
+    
     const prevIds = new Set(allEqs.map(e => e.id).filter(Boolean));
     const isFirstLoad = allEqs.length === 0;
 
@@ -893,11 +889,11 @@ function buildDropdowns() {
       </div>`).join('');
 }
 
-// ── YENİ DEPREM FLASH ─────────────────────────────────────────────────────
+
 const seenIds = new Set();
 
 function flashNewQuakes(prevIds) {
-  // İlk yüklemede mevcut tüm ID'leri seenIds'e al — bunlar için flash yok
+  
   if (seenIds.size === 0) {
     allEqs.forEach(e => e.id && seenIds.add(e.id));
     return;
@@ -919,7 +915,7 @@ function flashNewQuakes(prevIds) {
   });
 }
 
-// ── BİR İL İÇİN DEPREMLERİ FİLTRELE ────────────────────────────────────
+
 function getEqsForCity(cityId) {
   if (!allEqs.length) return [];
   const coord    = CITY_COORDS[cityId];
@@ -940,7 +936,7 @@ function getEqsForCity(cityId) {
   }).sort((a,b) => b.ts - a.ts);
 }
 
-// Depremlerden kaçı doğrudan o ile ait, kaçı civar?
+
 function getEqStats(cityId, eqs) {
   const provName = normProv(PROV_MAP[cityId] || cityId);
   let direkt = 0, civar = 0;
@@ -957,7 +953,7 @@ function getEqStats(cityId, eqs) {
   return { direkt, civar };
 }
 
-// ── VERİ YÜKLENDIKTEN SONRA RISK NOKTALARINI GUNCELLE ──────────────────
+
 function updateRiskDots() {
   document.querySelectorAll('.prov-pill').forEach(pill => {
     const cityId = pill.dataset.id;
@@ -989,12 +985,12 @@ function getDailyBars(eqs) {
   return bars;
 }
 
-// ── DEPREMİ HİSSETTİM ─────────────────────────────────────────────────────
+
 let aktifIl = '';
 
 
 
-// ── PANEL AÇ ──────────────────────────────────────────────────────────────
+
 const DAYS = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 
 async function openPanel(cityId, cityName) {
@@ -1003,7 +999,7 @@ async function openPanel(cityId, cityName) {
 
   aktifIl = cityName;
   document.getElementById('pCity').textContent = cityName;
-  // Veriyi anında güncelle — panel açılınca en güncel listeyi göster
+  
   await fetchKandilli();
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
   document.getElementById('rPill').textContent = '';
@@ -1011,13 +1007,13 @@ async function openPanel(cityId, cityName) {
   document.getElementById('panel').classList.add('open');
   document.getElementById('mobOverlay').classList.add('on');
 
-  // Reset tabs
+  
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tcont').forEach(t => t.classList.remove('active'));
   document.querySelector('[data-tab="act"]').classList.add('active');
   document.getElementById('tab-act').classList.add('active');
 
-  // Deprem verisi
+  
   const eqs = getEqsForCity(cityId);
   const { risk, label } = getRiskFromEqs(eqs);
   const bars = getDailyBars(eqs);
@@ -1040,13 +1036,11 @@ async function openPanel(cityId, cityName) {
         </div>`).join('')
     : '<div style="font-size:11px;color:var(--text3);padding:10px 0;">Bu hafta kayıtlı hareket yok.</div>';
 
-  // ── TAHMİN YÜZDELERİ — tamamen istatistiksel, Gemini'siz ──────────────
-  // Gutenberg-Richter yasasına dayalı basit olasılık modeli
+
   const weekCount = eqs.length;
   const maxM = eqs.length ? Math.max(...eqs.map(e => e.mag)) : 0;
   const avgDaily = weekCount / 7;
-  // Poisson yaklaşımı: P(en az 1 M4+) = 1 - e^(-λt)
-  // λ = haftalık M4+ oranı tahmini
+
   const m4rate = maxM >= 4 ? 0.4 : maxM >= 3 ? 0.12 : maxM >= 2 ? 0.04 : 0.01;
   const activityMult = Math.min(1 + avgDaily * 0.15, 2.5);
   const lambda = m4rate * activityMult;
@@ -1062,13 +1056,12 @@ async function openPanel(cityId, cityName) {
     document.getElementById('pf30').style.width = p30+'%'; document.getElementById('pp30').textContent = '%'+p30;
   }, 150);
 
-  // ── RİSK ROZETİ — istatistiksel ──────────────────────────────────────────
+  
   const rp = document.getElementById('rPill');
   rp.textContent = '● ' + label;
   rp.className = 'risk-pill ' + risk;
 
-  // ── GEMİNİ — sadece metin analizi, sadece il tıklandığında ───────────────
-  // Yüzdeler ve risk zaten hesaplandı, Gemini sadece açıklayıcı metin üretir
+  
   document.getElementById('aiTxt').innerHTML = '<span class="ai-loading"><span class="ai-spinner"></span>Analiz hazırlanıyor...</span>';
 
   const eqData = eqs.slice(0, 10).map(e => ({
@@ -1091,7 +1084,7 @@ async function openPanel(cityId, cityName) {
       throw new Error(data.error || 'boş yanıt');
     }
   } catch(e) {
-    // Gemini başarısız → istatistiksel metin üret (tamamen Gemini'siz)
+    
     document.getElementById('aiTxt').textContent = buildLocalAnalysis(cityId, cityName, eqs, risk, maxM, weekCount, getEqStats(cityId, eqs));
   }
 }
@@ -1099,7 +1092,7 @@ async function openPanel(cityId, cityName) {
 function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
   const ctx = IL_CTX[cityId];
 
-  // Gerçek zamanlı veri hesapları
+  
   const avgDepth = count > 0 ? +(eqs.reduce((s,e) => s+e.depth, 0) / count).toFixed(1) : 0;
   const shallow  = eqs.filter(e => e.depth < 10).length;
   const deep     = eqs.filter(e => e.depth >= 35).length;
@@ -1108,13 +1101,13 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
   const m2plus   = eqs.filter(e => e.mag >= 2 && e.mag < 3).length;
   const enBuyuk  = maxM > 0 ? maxM.toFixed(1) : null;
   const sonOlay  = eqs[0];
-  const seed     = Math.floor(Date.now() / 1000); // Her saniye farklı
+  const seed     = Math.floor(Date.now() / 1000); 
 
   function sec(liste) {
     return liste[seed % liste.length];
   }
 
-  // ── SAKİN DÖNEM ──────────────────────────────────────────────────────────
+  
   if (count === 0) {
     if (!ctx) return city + " ilinde son 3 günde herhangi bir sismik hareket kaydedilmedi. Bölge şu an sessiz.";
     return sec([
@@ -1124,7 +1117,7 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
     ]);
   }
 
-  // ── DEPE RİNLİK YORUMU ───────────────────────────────────────────────────
+  
   function derinlik() {
     if (shallow >= count * 0.65)
       return sec([
@@ -1145,7 +1138,7 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
     ]);
   }
 
-  // ── BÜYÜKLÜK YORUMU ──────────────────────────────────────────────────────
+  
   function buyukluk() {
     if (m4plus >= 3)
       return sec([
@@ -1184,7 +1177,7 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
     ]);
   }
 
-  // ── AKTİVİTE DURUMU ──────────────────────────────────────────────────────
+  
   const direkt = stats ? stats.direkt : count;
   const civar  = stats ? stats.civar  : 0;
   const civarNot = civar > 0
@@ -1220,7 +1213,7 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
     ]);
   }
 
-  // ── METİN BİRLEŞTİRME ────────────────────────────────────────────────────
+  
   if (ctx) {
     const c1 = aktivite();
     const c2 = buyukluk();
@@ -1237,7 +1230,7 @@ function buildLocalAnalysis(cityId, city, eqs, risk, maxM, count, stats) {
   return aktivite() + " " + buyukluk() + " " + derinlik();
 }
 
-// ── BÖLGE KARTLARINI OLUŞTUR ──────────────────────────────────────────────
+
 const regionsEl = document.getElementById('regions');
 REGIONS.forEach((reg, regIdx) => {
   const card = document.createElement('div');
@@ -1271,7 +1264,7 @@ REGIONS.forEach((reg, regIdx) => {
   reg.provs.forEach(p => {
     const pill = document.createElement('div');
     if (p.header) {
-      // Mevcut prov-list'i kapat, yeni bir başlık + liste ekle
+      
       card.appendChild(list);
       const hdr = document.createElement('div');
       hdr.className = 'akdeniz-header';
@@ -1295,7 +1288,7 @@ REGIONS.forEach((reg, regIdx) => {
   regionsEl.appendChild(card);
 });
 
-// ── DROPDOWN ──────────────────────────────────────────────────────────────
+
 let openDrop = null;
 function toggleDrop(id, el) {
   const drop = document.getElementById(id);
@@ -1312,7 +1305,7 @@ document.addEventListener('click', e => {
   }
 });
 
-// ── PANEL KAPAT ───────────────────────────────────────────────────────────
+
 document.getElementById('mobOverlay').addEventListener('click', () => {
   document.getElementById('panel').classList.remove('open');
   document.getElementById('mobOverlay').classList.remove('on');
@@ -1331,7 +1324,7 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', funct
   document.getElementById('tab-' + this.dataset.tab).classList.add('active');
 }));
 
-// ── DEMO VERİ (Kandilli erişilemezse) ────────────────────────────────────
+
 function loadDemoData() {
   const now = Date.now();
   allEqs = [
@@ -1356,9 +1349,9 @@ function loadDemoData() {
   updateRiskDots();
 }
 
-// ── BAŞLAT ────────────────────────────────────────────────────────────────
+
 fetchKandilli();
-// Her 2 dakikada bir güncelle
+
 setInterval(fetchKandilli, 30 * 1000);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -1377,7 +1370,7 @@ setInterval(fetchKandilli, 30 * 1000);
 <script>
 
 
-// ── SOHBET SİSTEMİ ────────────────────────────────────────────────────────
+
 const SUPABASE_URL = 'https://nskwxgdiehvrzzznhljp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5za3d4Z2RpZWh2cnp6em5obGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDcxNjYsImV4cCI6MjA4OTQyMzE2Nn0.7uWBf8_oI-Fwg-HCawL-Jmqw0zzeJHOg3BJlAZeWAT0';
 const ADMIN_ADI    = 'BURAYA_ADMIN_ADI';
@@ -1385,7 +1378,7 @@ const ADMIN_IDS    = ['u_j4inopt50c9mmwk0how'];
 
 const sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Kullanıcı kimliği
+
 function getUserId() {
   let uid = localStorage.getItem('tdb_uid');
   if (!uid) {
@@ -1395,7 +1388,7 @@ function getUserId() {
   return uid;
 }
 
-// 3 karakterlik rastgele kullanıcı adı: A01-Z99
+
 function getUserAdi() {
   let adi = localStorage.getItem('tdb_adi');
   if (!adi) {
@@ -1418,7 +1411,7 @@ async function bildirimAboneOl() {
   try {
     await OneSignal.Notifications.requestPermission();
     await new Promise(r => setTimeout(r, 1500));
-    // Abone olduktan sonra input'u geri getir
+    
     document.getElementById('sohbetAlt').innerHTML = '<input class="sohbet-input" id="sohbetInput" aria-label="Mesaj yaz" placeholder="Mesajini yaz..." maxlength="200"/><button class="sohbet-gonder" onclick="mesajGonder()">Gonder</button>';
   } catch(e) {}
 }
@@ -1442,7 +1435,7 @@ function sohbetAc() {
   document.getElementById('sohbetBadge').style.display = 'none';
   document.getElementById('sohbetBadge').textContent = '';
   mesajlariYukle();
-  // Polling başlat — 2 saniyede bir kontrol
+  
   if (!pollingInterval) {
     pollingInterval = setInterval(yeniMesajlariKontrolEt, 1500);
   }
@@ -1481,11 +1474,11 @@ function mesajaBasiliTut(m) {
 function mesajHTML(m, alintMi) {
   const benim   = m.kullanici_id === myId;
   const admin   = isAdmin(m.kullanici_adi, m.kullanici_id);
-  // Admin mesajlarında engel butonu çıkmasın
+  
   const kisiselEngel = (!benim && !admin)
     ? `<button class="s-engelle-btn" style="display:none;" onclick="kisiselEngelle('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>`
     : '';
-  // Admin paneli: blok + doğrulama butonu
+  
   const adminButonlar = (!benim && ADMIN_IDS.includes(myId))
     ? `<div class="admin-btn-grup" style="display:none;flex-direction:column;gap:4px;align-self:center;">
         <button class="s-engelle-btn" onclick="engelleKullanici('${m.kullanici_id}','${m.kullanici_adi}')">🚫</button>
@@ -1572,7 +1565,7 @@ async function yeniMesajlariKontrolEt() {
 
   if (atBottom) el.scrollTop = el.scrollHeight;
 
-  // Badge güncelle
+  
   if (!sohbetAcik && data.length > 0) {
     const badge = document.getElementById('sohbetBadge');
     badge.style.display = 'block';
@@ -1619,7 +1612,7 @@ async function dogrulaKullanici(uid, adi, btn) {
   } else {
     await sb.from('verified_users').insert({ kullanici_id: uid, kullanici_adi: adi });
   }
-  // Ekranı güncelle
+  
   document.querySelectorAll('.s-satir').forEach(el => {
     const isim = el.querySelector('.s-isim');
     if (!isim) return;
@@ -1643,7 +1636,7 @@ function getKisiselEngeller() {
 }
 
 function mesajTikla(satir) {
-  // Diğer aktif satırları kapat
+  
   document.querySelectorAll('.s-satir.aktif').forEach(el => {
     if (el !== satir) el.classList.remove('aktif');
   });
@@ -1657,7 +1650,7 @@ function kisiselEngelle(uid, adi) {
     liste.push(uid);
     localStorage.setItem('tdb_engel', JSON.stringify(liste));
   }
-  // O kişinin mesajlarını ekrandan kaldır
+  
   document.querySelectorAll('.s-satir').forEach(el => {
     const isim = el.querySelector('.s-isim');
     if (isim && isim.textContent.replace(' 👑','').trim() === adi) el.remove();
@@ -1669,7 +1662,7 @@ async function engelleKullanici(uid, adi) {
   if (!confirm(adi + ' adlı kullanıcıyı engellemek istediğinizden emin misiniz?')) return;
   await sb.from('engelliler').insert({ kullanici_id: uid });
   await sb.from('mesajlar').update({ engellendi: true }).eq('kullanici_id', uid);
-  // O kullanıcının tüm mesajlarını ekrandan kaldır
+  
   document.querySelectorAll('.s-satir').forEach(el => {
     const isim = el.querySelector('.s-isim');
     if (isim && isim.textContent.replace(' 👑','').trim() === adi) el.remove();
